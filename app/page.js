@@ -200,7 +200,6 @@ export default function App(){
     await supabase.auth.signOut();
     setUser(null);setAuthMode("landing");setAuthEmail("");setAuthPass("");setAuthName("");
   };
-
   const openDetail=(r)=>{setSelRest(r);setViewed(prev=>[r,...prev.filter(x=>x.id!==r.id)].slice(0,4));};
 
   useEffect(()=>{const el=catRef.current;if(!el)return;const ck=()=>setShowCatFade(el.scrollWidth>el.clientWidth&&el.scrollLeft<el.scrollWidth-el.clientWidth-10);ck();el.addEventListener("scroll",ck);return()=>el.removeEventListener("scroll",ck);},[]);
