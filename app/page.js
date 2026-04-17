@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../lib/supabase";
 
 const P={accent:"#2D6A4F",mint:"#40916C",warm:"#D4A373",text:"#1B2A1D",textM:"#6B7E6F",border:"#D5CCBB",bg:"#F5F0E8",card:"#FFFDF8"};
 const DAYS=["Mo","Di","Mi","Do","Fr","Sa","So"];
