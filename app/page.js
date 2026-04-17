@@ -105,7 +105,7 @@ function useInView(ref){const[v,setV]=useState(false);useEffect(()=>{if(!ref.cur
 const Reveal=({children,style,id})=>{const r=useRef(null);const v=useInView(r);return (<div ref={r} id={id} style={{opacity:v?1:0,transform:v?"translateY(0)":"translateY(30px)",transition:"all 0.7s cubic-bezier(0.22,1,0.36,1)",...style}}>{children}</div>);};
 
 export default function App(){
-  const[page,setPage]=useState("home"); // "home" | "register"
+  const[page,setPage]=useState("home"); // "home" | "register" | "impressum" | "datenschutz"
   const[rests,setRests]=useState([]);
   const[loading,setLoading]=useState(true);
   const[plzSearch,setPlzSearch]=useState("");
@@ -200,6 +200,7 @@ export default function App(){
     await supabase.auth.signOut();
     setUser(null);setAuthMode("landing");setAuthEmail("");setAuthPass("");setAuthName("");
   };
+
   const openDetail=(r)=>{setSelRest(r);setViewed(prev=>[r,...prev.filter(x=>x.id!==r.id)].slice(0,4));};
 
   useEffect(()=>{const el=catRef.current;if(!el)return;const ck=()=>setShowCatFade(el.scrollWidth>el.clientWidth&&el.scrollLeft<el.scrollWidth-el.clientWidth-10);ck();el.addEventListener("scroll",ck);return()=>el.removeEventListener("scroll",ck);},[]);
@@ -508,7 +509,7 @@ export default function App(){
             </div>
             <div>
               <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:12}}>Rechtliches</div>
-              {["Impressum","Datenschutzerklärung","AGB","Verwendung von Cookies"].map(l=>(<a key={l} href="#" style={{display:"block",color:"rgba(255,255,255,0.5)",fontSize:13,fontWeight:600,textDecoration:"none",marginBottom:10}}>{l}</a>))}
+              {[{l:"Impressum",p:"impressum"},{l:"Datenschutzerklärung",p:"datenschutz"}].map((x,i)=>(<a key={i} href="#" onClick={e=>{e.preventDefault();setPage(x.p);window.scrollTo(0,0);}} style={{display:"block",color:"rgba(255,255,255,0.5)",fontSize:13,fontWeight:600,textDecoration:"none",marginBottom:10}}>{x.l}</a>))}
             </div>
             <div>
               <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:12}}>Kontakt</div>
@@ -526,6 +527,77 @@ export default function App(){
       </footer>
     </div>
   );
+
+  // ═══════════════════════════════════════════
+  // IMPRESSUM PAGE
+  // ═══════════════════════════════════════════
+  const LegalPage=({title,children})=>(<div style={{fontFamily:"system-ui,-apple-system,'Segoe UI',sans-serif",background:P.heroBg,color:P.text,minHeight:"100vh"}}>
+    <nav style={{background:"rgba(245,240,232,0.92)",backdropFilter:"blur(16px)",borderBottom:`1px solid ${P.border}`,padding:"14px 24px"}}>
+      <div style={{maxWidth:800,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{cursor:"pointer"}} onClick={()=>setPage("home")}><Logo h={24}/></div>
+        <button onClick={()=>setPage("home")} style={{background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"8px 18px",fontSize:13,fontWeight:700,color:P.textM,cursor:"pointer"}}>← Zur Startseite</button>
+      </div>
+    </nav>
+    <div style={{maxWidth:700,margin:"0 auto",padding:"40px 24px 80px"}}>
+      <h1 style={{fontSize:32,fontWeight:900,marginBottom:24}}>{title}</h1>
+      <div style={{fontSize:15,lineHeight:1.8,color:P.text}}>{children}</div>
+    </div>
+  </div>);
+
+  if(page==="impressum")return(<LegalPage title="Impressum">
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:16}}>Angaben gemäß § 5 TMG</p>
+      <p>Patrick Mecklenburg<br/>Husters Kamp 12<br/>49632 Essen (Oldb.)</p>
+      <p style={{marginTop:16}}><strong>Kontakt:</strong><br/>Telefon: 05434-8071665<br/>E-Mail: info@delicarto.de</p>
+      <p style={{marginTop:16}}><strong>Umsatzsteuer-ID:</strong><br/>Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br/>DE117085508</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>Haftung für Inhalte</p>
+      <p>Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.</p>
+      <p style={{marginTop:12}}>Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>Haftung für Links</p>
+      <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>Urheberrecht</p>
+      <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
+    </div>
+  </LegalPage>);
+
+  if(page==="datenschutz")return(<LegalPage title="Datenschutzerklärung">
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>1. Datenschutz auf einen Blick</p>
+      <p><strong>Allgemeine Hinweise:</strong> Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können.</p>
+      <p style={{marginTop:12}}><strong>Datenerfassung auf dieser Website:</strong> Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber: Patrick Mecklenburg, Husters Kamp 12, 49632 Essen (Oldb.), E-Mail: info@delicarto.de</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>2. Hosting</p>
+      <p>Diese Website wird bei Vercel Inc. gehostet. Beim Besuch der Website erfasst der Server automatisch Informationen in sogenannten Server-Log-Dateien wie den Browsertyp, das Betriebssystem, die Referrer URL, die IP-Adresse, den Zeitpunkt der Serveranfrage und ähnliches. Diese Daten sind nicht bestimmten Personen zuordenbar und werden nicht mit anderen Datenquellen zusammengeführt.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>3. Allgemeine Hinweise und Pflichtinformationen</p>
+      <p><strong>Datenschutz:</strong> Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.</p>
+      <p style={{marginTop:12}}><strong>Hinweis zur verantwortlichen Stelle:</strong><br/>Patrick Mecklenburg<br/>Husters Kamp 12<br/>49632 Essen (Oldb.)<br/>Telefon: 05434-8071665<br/>E-Mail: info@delicarto.de</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>4. Datenerfassung auf dieser Website</p>
+      <p><strong>Registrierung:</strong> Wenn Sie sich auf unserer Website registrieren, speichern wir Ihre E-Mail-Adresse und Ihren Namen. Diese Daten werden benötigt, um Ihnen den Zugang zu Ihrem Konto zu ermöglichen und Ihren Lieferdienst-Eintrag zu verwalten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
+      <p style={{marginTop:12}}><strong>PDF-Upload:</strong> Wenn Sie eine Speisekarte hochladen, wird die Datei auf Servern von Supabase (EU-Rechenzentrum Frankfurt) gespeichert. Die Datei ist öffentlich abrufbar, damit Kunden Ihre Speisekarte ansehen können.</p>
+      <p style={{marginTop:12}}><strong>Cookies:</strong> Diese Website verwendet technisch notwendige Cookies zur Sitzungsverwaltung. Darüber hinaus werden keine Tracking-Cookies oder Analyse-Tools eingesetzt.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>5. Ihre Rechte</p>
+      <p>Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger und den Zweck der Datenverarbeitung sowie ein Recht auf Berichtigung, Sperrung oder Löschung dieser Daten. Hierzu sowie zu weiteren Fragen zum Thema personenbezogene Daten können Sie sich jederzeit unter der im Impressum angegebenen Adresse an uns wenden.</p>
+      <p style={{marginTop:12}}>Sie haben das Recht, Daten, die wir auf Grundlage Ihrer Einwilligung automatisiert verarbeiten, an sich oder an einen Dritten in einem gängigen, maschinenlesbaren Format aushändigen zu lassen.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>6. Datenverarbeitung durch Drittanbieter</p>
+      <p><strong>Supabase:</strong> Für die Datenhaltung nutzen wir Supabase mit Servern in Frankfurt (EU). Supabase verarbeitet Daten gemäß der DSGVO.</p>
+      <p style={{marginTop:12}}><strong>Vercel:</strong> Das Hosting erfolgt über Vercel Inc. mit Edge-Servern weltweit. Vercel erfüllt die Anforderungen der DSGVO und ist unter dem EU-US Data Privacy Framework zertifiziert.</p>
+    </div>
+  </LegalPage>);
 
   // ═══════════════════════════════════════════
   // REGISTER PAGE (Business view)
