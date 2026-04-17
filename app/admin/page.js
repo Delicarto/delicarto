@@ -22,7 +22,12 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
   const upd=(k,v)=>setF(prev=>({...prev,[k]:v}));
 
   const save=async()=>{
-    if(!f.name||f.cats.length===0){setFormMsg("Name und Kategorie erforderlich.");return;}
+    const errors=[];
+    if(!f.name.trim())errors.push("Name fehlt");
+    if(f.cats.length===0)errors.push("Mindestens eine Küche/Tag auswählen");
+    if(!f.street.trim()||!f.plz.trim()||!f.city.trim())errors.push("Adresse unvollständig (Straße, PLZ, Ort)");
+    if(!f.zones.some(z=>z.name.trim()&&z.plz.trim()))errors.push("Mindestens ein Liefergebiet mit Ort und PLZ");
+    if(errors.length>0){setFormMsg("❌ "+errors.join(" · "));return;}
     setSaving(true);setFormMsg("");
     try{
       let pdfUrl=f.pdfUrl,pdfName=f.pdfName;
