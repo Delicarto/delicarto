@@ -154,6 +154,7 @@ export default function App(){
       col:r.color||"#2D6A4F",
       pdfUrl:r.pdf_url||null,pdfName:r.pdf_name||"Speisekarte.pdf",
       whatsapp:r.whatsapp||null,
+      dailySpecial:r.daily_special||null,
       zones:(zones||[]).filter(z=>z.restaurant_id===r.id).map(z=>({name:z.zone_name,plz:z.plz,cost:z.delivery_cost,minOrder:z.min_order||""})),
       added:r.created_at?.slice(0,10)||""
     }));
@@ -399,6 +400,7 @@ export default function App(){
                         <span style={{fontSize:11,color:P.textM,fontWeight:600,background:"#FFF",padding:"3px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>Min. {r.min}</span>
                       </div>
                       {z&&<div style={{marginTop:8}}><span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>🚗 Lieferkosten: {z.cost==="0€"?"Kostenlos!":z.cost}</span></div>}
+                      {r.dailySpecial&&<div style={{marginTop:10,padding:"10px 14px",borderRadius:12,background:"#FFF5EB",border:"1px solid #FFDDB5"}}><div style={{fontSize:10,fontWeight:800,color:"#BC6C25",textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:2}}>🔥 Tagesangebot</div><div style={{fontSize:13,fontWeight:700,color:"#8B4513"}}>{r.dailySpecial}</div></div>}
                       <div style={{marginTop:14,paddingTop:14,borderTop:`1px solid ${P.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}><span style={{fontSize:13,fontWeight:700,color:P.accent}}>Speisekarte ansehen →</span><span style={{fontSize:10,color:"#8B9E82",fontWeight:600}}>{r.views}×</span></div>
                     </div>
                   </div>);})}
@@ -466,6 +468,9 @@ export default function App(){
                     );})}
                   </div>
                 </div>
+
+                {/* Daily special */}
+                {selRest.dailySpecial&&<div style={{background:"#FFF5EB",borderRadius:14,padding:"16px 18px",marginBottom:22,border:"1.5px solid #FFDDB5"}}><div style={{fontSize:10,fontWeight:800,color:"#BC6C25",textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:6}}>🔥 Tagesangebot</div><div style={{fontSize:16,fontWeight:800,color:"#8B4513"}}>{selRest.dailySpecial}</div></div>}
 
                 <div style={{background:"#EDE6FA",borderRadius:14,padding:"16px 18px",marginBottom:22,border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>🕐 Öffnungszeiten</div><SchedShow schedule={selRest.sched}/></div>
 
