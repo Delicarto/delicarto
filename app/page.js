@@ -153,6 +153,7 @@ export default function App(){
       sched:r.schedule||DS,min:r.min_order||"—",prem:r.is_premium,
       col:r.color||"#2D6A4F",
       pdfUrl:r.pdf_url||null,pdfName:r.pdf_name||"Speisekarte.pdf",
+      whatsapp:r.whatsapp||null,
       zones:(zones||[]).filter(z=>z.restaurant_id===r.id).map(z=>({name:z.zone_name,plz:z.plz,cost:z.delivery_cost,minOrder:z.min_order||""})),
       added:r.created_at?.slice(0,10)||""
     }));
@@ -205,7 +206,15 @@ export default function App(){
 
   useEffect(()=>{const el=catRef.current;if(!el)return;const ck=()=>setShowCatFade(el.scrollWidth>el.clientWidth&&el.scrollLeft<el.scrollWidth-el.clientWidth-10);ck();el.addEventListener("scroll",ck);return()=>el.removeEventListener("scroll",ck);},[]);
 
-  const reqLoc=()=>{if(locLoad)return;setLocLoad(true);navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>{const testPlzs=["10827","12045","12043","10119","10999","10961","10997","10623","12159","12099","12435","10405","10245","10707","10551"];const lat=p.coords.latitude,lng=p.coords.longitude;const closest=testPlzs[Math.floor(Math.random()*testPlzs.length)];setPlzSearch(closest);setLocLoad(false);appRef.current?.scrollIntoView({behavior:"smooth"});},()=>{setPlzSearch("10999");setLocLoad(false);appRef.current?.scrollIntoView({behavior:"smooth"});},{enableHighAccuracy:true,timeout:8000}):(()=>{setPlzSearch("10999");setLocLoad(false);})();};
+  const reqLoc=()=>{if(locLoad)return;setLocLoad(true);navigator.geolocation?navigator.geolocation.getCurrentPosition(async(p)=>{
+    try{
+      const res=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
+      const data=await res.json();
+      const plz=data?.address?.postcode||"";
+      if(plz){setPlzSearch(plz);appRef.current?.scrollIntoView({behavior:"smooth"});}
+    }catch(e){console.error(e);}
+    setLocLoad(false);
+  },()=>{setLocLoad(false);alert("Standort konnte nicht ermittelt werden. Bitte PLZ manuell eingeben.");},{enableHighAccuracy:true,timeout:10000}):(()=>{setLocLoad(false);alert("Standort wird von deinem Browser nicht unterstützt.");})();};
 
   // Filter: by PLZ (delivery zone), by text search, by category
   const filtered=(()=>{let l=[...rests];
@@ -462,7 +471,11 @@ export default function App(){
 
                 {selRest.pdfUrl?(<div style={{borderRadius:18,overflow:"hidden",border:`1.5px solid ${P.border}`,marginBottom:18}}><div style={{background:"#EDE6FA",padding:"14px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${P.border}`}}><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>📄</span><div><div style={{fontSize:14,fontWeight:700}}>Speisekarte</div><div style={{fontSize:11,color:P.textM}}>{selRest.pdfName}</div></div></div><a href={selRest.pdfUrl} download={selRest.pdfName} className="btn" style={{background:P.text,color:"#FFF",borderRadius:100,padding:"8px 18px",fontSize:12,fontWeight:700,textDecoration:"none"}}>↓ Download</a></div><iframe src={selRest.pdfUrl} style={{width:"100%",height:480,border:"none"}} title="PDF"/></div>):(<div style={{background:"#EDE6FA",borderRadius:18,padding:"40px 20px",textAlign:"center",border:`2px dashed ${P.border}`,marginBottom:18}}><div style={{fontSize:48,marginBottom:10}}>📄</div><h3 style={{fontSize:18,fontWeight:800,marginBottom:6}}>Speisekarte</h3><p style={{color:P.textM,fontSize:13}}>Demo-Eintrag — PDF in der Vollversion</p></div>)}
 
-                <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><button className="btn" style={{flex:1,minWidth:100,background:"#34D399",color:"#FFF",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700}}>📞 Anrufen</button><button className="btn2" style={{flex:1,minWidth:100,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,color:P.textM}}>📍 Route</button><button className="btn" style={{flex:1,minWidth:100,background:"#25D366",color:"#FFF",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700}}>💬 WhatsApp</button></div>
+                <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                  {selRest.phone&&<a href={`tel:${selRest.phone}`} className="btn" style={{flex:1,minWidth:100,background:"#34D399",color:"#FFF",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>📞 Anrufen</a>}
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getAddr(selRest))}`} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:100,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>📍 Route</a>
+                  {selRest.whatsapp&&<a href={`https://wa.me/${selRest.whatsapp.replace(/[^0-9]/g,"")}`} target="_blank" rel="noopener" className="btn" style={{flex:1,minWidth:100,background:"#25D366",color:"#FFF",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</a>}
+                </div>
               </div>
             </div></div>);})()
         )}
