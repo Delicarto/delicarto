@@ -9,7 +9,7 @@ const mkDS=()=>DAYS.map(()=>({closed:false,slots:[{open:"11:00",close:"22:00"}]}
 const CATS=["Italienisch","Vietnamesisch","Türkisch","Japanisch","Indisch","Griechisch","Chinesisch","Mexikanisch","Deutsch","Vegan","Vegetarisch","Halal","Burger","Sonstiges"];
 const CE={"Italienisch":"🍕","Vietnamesisch":"🍜","Türkisch":"🥙","Japanisch":"🍣","Indisch":"🍛","Griechisch":"🥗","Chinesisch":"🥡","Mexikanisch":"🌮","Deutsch":"🥨","Vegan":"🌱","Vegetarisch":"🥬","Halal":"☪️","Burger":"🍔","Sonstiges":"🍽️"};
 const CC=["#2D6A4F","#40916C","#52796F","#588157","#D4A373","#BC6C25","#DDA15E","#E9C46A"];
-const mkEmpty=()=>({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",whatsapp:"",dailySpecial:"",min:"",sched:mkDS(),zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:"",pdfName:"",isPremium:false});
+const mkEmpty=()=>({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",whatsapp:"",dailySpecial:"",min:"",sched:mkDS(),zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:"",pdfName:"",isPremium:false,imageFile:null,imageUrl:""});
 const lb={fontSize:11,fontWeight:700,color:"#6B7E6F",textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:6};
 const is={fontSize:14,fontWeight:500,border:"1.5px solid #D5CCBB",borderRadius:10,background:"#FFF",color:"#1B2A1D",padding:"12px 14px",width:"100%",fontFamily:"inherit"};
 
@@ -26,6 +26,14 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
     setSaving(true);setFormMsg("");
     try{
       let pdfUrl=f.pdfUrl,pdfName=f.pdfName;
+      let imageUrl=f.imageUrl;
+      if(f.imageFile){
+        const imgName=`img-${Date.now()}-${f.imageFile.name}`;
+        const{error:ie}=await supabase.storage.from("menus").upload(imgName,f.imageFile);
+        if(ie)throw ie;
+        const{data:{publicUrl}}=supabase.storage.from("menus").getPublicUrl(imgName);
+        imageUrl=publicUrl;
+      }
       if(f.file){
         const fn=`${Date.now()}-${f.file.name}`;
         const{error:fe}=await supabase.storage.from("menus").upload(fn,f.file);
@@ -33,7 +41,7 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         const{data:{publicUrl}}=supabase.storage.from("menus").getPublicUrl(fn);
         pdfUrl=publicUrl;pdfName=f.file.name;
       }
-      const rd={name:f.name,categories:f.cats,street:f.street,house_nr:f.nr,plz:f.plz,city:f.city,phone:f.phone||null,whatsapp:f.whatsapp||null,daily_special:f.dailySpecial||null,schedule:f.sched,min_order:f.min||null,pdf_url:pdfUrl||null,pdf_name:pdfName||null,color:CC[Math.floor(Math.random()*CC.length)],is_premium:f.isPremium,owner_id:user.id};
+      const rd={name:f.name,categories:f.cats,street:f.street,house_nr:f.nr,plz:f.plz,city:f.city,phone:f.phone||null,whatsapp:f.whatsapp||null,daily_special:f.dailySpecial||null,image_url:imageUrl||null,schedule:f.sched,min_order:f.min||null,pdf_url:pdfUrl||null,pdf_name:pdfName||null,color:CC[Math.floor(Math.random()*CC.length)],is_premium:f.isPremium,owner_id:user.id};
       let rid=editId;
       if(editId){
         const{error}=await supabase.from("restaurants").update(rd).eq("id",editId);
@@ -98,6 +106,15 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         </div>
       </div>
 
+      {/* Logo/Bild */}
+      <div><label style={lb}>Logo oder Foto (optional)</label>
+        <input type="file" accept="image/*" id="imgUpload" onChange={e=>{if(e.target.files[0])upd("imageFile",e.target.files[0]);}} style={{display:"none"}}/>
+        {f.imageUrl&&!f.imageFile&&<div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}><img src={f.imageUrl} style={{width:48,height:48,borderRadius:12,objectFit:"cover"}} alt="Logo"/><span style={{fontSize:13,fontWeight:600,color:"#1B5E3B"}}>Bild vorhanden</span></div>}
+        {f.imageFile&&<div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}><img src={URL.createObjectURL(f.imageFile)} style={{width:48,height:48,borderRadius:12,objectFit:"cover"}} alt="Vorschau"/><span style={{fontSize:13,fontWeight:600,color:"#1B5E3B"}}>{f.imageFile.name}</span><button onClick={()=>upd("imageFile",null)} style={{background:"none",border:"none",cursor:"pointer",color:"#6B7E6F"}}>✕</button></div>}
+        <button onClick={()=>document.getElementById("imgUpload")?.click()} style={{padding:"10px 18px",borderRadius:100,border:"1.5px dashed #D5CCBB",background:"transparent",color:"#2D6A4F",fontSize:12,fontWeight:700,cursor:"pointer"}}>{f.imageUrl?"🖼️ Neues Bild":"🖼️ Bild hochladen"}</button>
+        <div style={{fontSize:11,color:"#6B7E6F",marginTop:4}}>Wird automatisch quadratisch zugeschnitten. Kein Bild = Küchen-Emoji.</div>
+      </div>
+
       {/* PDF */}
       <div><label style={lb}>Speisekarte (PDF)</label>
         <input type="file" accept=".pdf" ref={fRef} onChange={e=>{if(e.target.files[0])upd("file",e.target.files[0]);}} style={{display:"none"}}/>
@@ -146,7 +163,7 @@ export default function AdminPage(){
 
   const startEdit=(r)=>{
     const rz=(zones||[]).filter(z=>z.restaurant_id===r.id).map(z=>({name:z.zone_name,plz:z.plz,cost:z.delivery_cost,minOrder:z.min_order||""}));
-    setEditInit({name:r.name,cats:r.categories||[],street:r.street||"",nr:r.house_nr||"",plz:r.plz||"",city:r.city||"",phone:r.phone||"",whatsapp:r.whatsapp||"",dailySpecial:r.daily_special||"",min:r.min_order||"",sched:r.schedule||mkDS(),zones:rz.length>0?rz:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:r.pdf_url||"",pdfName:r.pdf_name||"",isPremium:r.is_premium||false});
+    setEditInit({name:r.name,cats:r.categories||[],street:r.street||"",nr:r.house_nr||"",plz:r.plz||"",city:r.city||"",phone:r.phone||"",whatsapp:r.whatsapp||"",dailySpecial:r.daily_special||"",min:r.min_order||"",sched:r.schedule||mkDS(),zones:rz.length>0?rz:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:r.pdf_url||"",pdfName:r.pdf_name||"",isPremium:r.is_premium||false,imageFile:null,imageUrl:r.image_url||""});
     setEditId(r.id);setTab("edit");setMsg("");
   };
   const handleSaved=(m)=>{loadAll();setMsg(m);setTab("list");setEditId(null);setEditInit(null);};

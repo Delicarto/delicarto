@@ -155,6 +155,7 @@ export default function App(){
       pdfUrl:r.pdf_url||null,pdfName:r.pdf_name||"Speisekarte.pdf",
       whatsapp:r.whatsapp||null,
       dailySpecial:r.daily_special||null,
+      imageUrl:r.image_url||null,
       zones:(zones||[]).filter(z=>z.restaurant_id===r.id).map(z=>({name:z.zone_name,plz:z.plz,cost:z.delivery_cost,minOrder:z.min_order||""})),
       added:r.created_at?.slice(0,10)||""
     }));
@@ -387,7 +388,7 @@ export default function App(){
                     <div style={{position:"absolute",top:14,right:14,background:P.accent,color:"#FFF",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:100}}>⭐ PRO</div>
                     <div style={{padding:"20px 22px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-                        <div style={{width:48,height:48,borderRadius:14,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>{CE[r.cats[0]]||"🍽️"}</div>
+                        <div style={{width:48,height:48,borderRadius:14,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0,overflow:"hidden"}}>{r.imageUrl?<img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"cover"}} alt={r.name}/>:(CE[r.cats[0]]||"🍽️")}</div>
                         <div style={{minWidth:0}}>
                           <h3 style={{fontSize:17,fontWeight:800,lineHeight:1.2,marginBottom:4}}>{r.name}</h3>
                           <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{r.cats.map(c=>(<span key={c} style={{fontSize:10,color:P.textM,fontWeight:700,background:P.card,padding:"2px 8px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}</div>
@@ -416,7 +417,7 @@ export default function App(){
                     <div style={{height:4,background:`linear-gradient(90deg,${r.col},${r.col}80)`}}/>
                     <div style={{padding:"20px 22px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-                        <div style={{width:48,height:48,borderRadius:14,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>{CE[r.cats[0]]||"🍽️"}</div>
+                        <div style={{width:48,height:48,borderRadius:14,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0,overflow:"hidden"}}>{r.imageUrl?<img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"cover"}} alt={r.name}/>:(CE[r.cats[0]]||"🍽️")}</div>
                         <div style={{minWidth:0}}>
                           <h3 style={{fontSize:17,fontWeight:800,lineHeight:1.2,marginBottom:4}}>{r.name}</h3>
                           <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{r.cats.map(c=>(<span key={c} style={{fontSize:10,color:P.textM,fontWeight:700,background:"#EDE6FA",padding:"2px 8px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}</div>
@@ -444,7 +445,7 @@ export default function App(){
               <div style={{height:5,background:`linear-gradient(90deg,${selRest.col},${P.mint},${selRest.col})`}}/>
               <div style={{padding:"28px 24px",borderBottom:`1px solid ${P.border}`}}>
                 <div style={{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-                  <div style={{width:56,height:56,borderRadius:16,background:`${selRest.col}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>{CE[selRest.cats[0]]||"🍽️"}</div>
+                  <div style={{width:56,height:56,borderRadius:16,background:`${selRest.col}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,overflow:"hidden"}}>{selRest.imageUrl?<img src={selRest.imageUrl} style={{width:"100%",height:"100%",objectFit:"cover"}} alt={selRest.name}/>:(CE[selRest.cats[0]]||"🍽️")}</div>
                   <div style={{flex:1}}>
                     <h2 style={{fontSize:26,fontWeight:900,letterSpacing:"-0.5px",marginBottom:6}}>{selRest.name}</h2>
                     <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{selRest.cats.map(c=>(<span key={c} style={{fontSize:11,color:P.textM,fontWeight:700,background:"#EDE6FA",padding:"2px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}<span style={{fontSize:11,fontWeight:700,padding:"2px 10px",borderRadius:100,background:op?"#E8FFF3":"#FFF0F3",color:op?"#1B5E3B":"#C4314B"}}>{op?"Geöffnet":"Geschlossen"}</span></div>
