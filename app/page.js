@@ -464,7 +464,7 @@ export default function App(){
                     {selRest.zones.map((z,i)=>{const isMatch=plzSearch&&z.plz===plzSearch;return(
                       <div key={i} style={{padding:"10px 12px",borderRadius:8,background:isMatch?"#E8F4FD":"#FFF",border:isMatch?`2px solid #93C5FD`:`1px solid ${P.border}`}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-                          <div><span style={{fontSize:14,fontWeight:700}}>{z.name}</span><span style={{fontSize:12,color:P.textM,marginLeft:6}}>({z.plz})</span></div>
+                          <div><span style={{fontSize:16,fontWeight:800}}>{z.name}</span><span style={{fontSize:14,color:P.textM,marginLeft:6}}>({z.plz})</span></div>
                         </div>
                         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                           <span style={{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:100,background:z.cost==="0€"?"#E8F5E9":"#FFF5EB",color:z.cost==="0€"?"#1B5E3B":"#BC6C25"}}>🚗 {z.cost==="0€"?"Kostenlos":z.cost}</span>
