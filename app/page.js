@@ -309,16 +309,16 @@ export default function App(){
         <svg style={{position:"absolute",right:"-2%",top:70,width:"35%",maxWidth:300,opacity:0.06}} viewBox="0 0 200 200"><rect x="20" y="20" width="160" height="160" rx="40" stroke="#2D6A4F" strokeWidth="8" fill="none"/><rect x="35" y="35" width="130" height="130" rx="30" fill="#2D6A4F" opacity="0.15"/><path d="M80 150 C80 150 80 100 120 70" stroke="#40916C" strokeWidth="8" fill="none" strokeLinecap="round"/><path d="M65 140 C65 140 80 85 130 60" stroke="#6BAF8D" strokeWidth="6" fill="none" strokeLinecap="round"/><circle cx="120" cy="70" r="22" fill="#2D6A4F"/><circle cx="120" cy="70" r="10" fill="#F5F0E8"/></svg>
         <div style={{maxWidth:700,margin:"0 auto",padding:"48px 24px 16px",textAlign:"center",position:"relative"}}>
           <h1 style={{fontSize:"clamp(30px,5vw,50px)",fontWeight:900,lineHeight:1.08,marginBottom:14,letterSpacing:"-1.5px"}}><span style={{color:P.accent}}>Speisekarte</span> finden,<br/>direkt bestellen.</h1>
-          <p style={{fontSize:16,color:P.textM,lineHeight:1.6,maxWidth:440,margin:"0 auto 28px",fontWeight:500}}>Gib deine PLZ ein oder teile deinen Standort — und sieh sofort welche Lieferdienste zu dir liefern.</p>
-          {/* PLZ Search + Standort */}
+          <p style={{fontSize:16,color:P.textM,lineHeight:1.6,maxWidth:440,margin:"0 auto 28px",fontWeight:500}}>Gib deine PLZ ein und finde sofort alle Lieferdienste in deiner Nähe.</p>
+          {/* PLZ Search */}
           <div style={{maxWidth:480,margin:"0 auto 12px",display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center"}}>
-            <div style={{flex:1,minWidth:240,display:"flex",border:`2px solid ${plzSearch.length>=4?P.lila:P.border}`,borderRadius:100,overflow:"hidden",background:P.card,boxShadow:"0 2px 12px rgba(26,26,46,0.05)",transition:"border-color 0.3s"}}>
+            <div style={{flex:1,minWidth:240,display:"flex",border:`2px solid ${plzSearch.length>=4?P.accent:P.border}`,borderRadius:100,overflow:"hidden",background:P.card,boxShadow:"0 2px 12px rgba(26,26,46,0.05)",transition:"border-color 0.3s"}}>
               <div style={{display:"flex",alignItems:"center",paddingLeft:20}}><span style={{fontSize:20,color:P.textM}}>📍</span></div>
-              <input type="text" placeholder="Deine PLZ …" value={plzSearch} onChange={e=>{setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5));if(e.target.value.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{flex:1,padding:"16px 14px",fontSize:18,fontWeight:600,border:"none",background:"transparent",color:P.text,outline:"none",letterSpacing:"1px"}} maxLength={5}/>
+              <input type="text" placeholder="Deine PLZ …" value={plzSearch} onChange={e=>setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5))} onKeyDown={e=>{if(e.key==="Enter"&&plzSearch.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{flex:1,padding:"16px 14px",fontSize:18,fontWeight:600,border:"none",background:"transparent",color:P.text,outline:"none",letterSpacing:"1px"}} maxLength={5}/>
               {plzSearch&&<button onClick={()=>setPlzSearch("")} style={{padding:"0 16px",background:"none",border:"none",fontSize:18,color:P.textM,cursor:"pointer"}}>✕</button>}
             </div>
-            <button className="btn" onClick={reqLoc} style={{padding:"14px 22px",borderRadius:100,background:locLoad?"#E5DDD0":P.mint,color:"#1B5E3B",fontSize:13,fontWeight:700,whiteSpace:"nowrap",border:"none"}}>
-              {locLoad?<><span style={{display:"inline-block",animation:"spin 1s linear infinite"}}>⏳</span> Suche…</>:<>📍 Mein Standort</>}
+            <button className="btn" onClick={()=>{if(plzSearch.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{padding:"14px 28px",borderRadius:100,background:plzSearch.length>=4?P.accent:"#D5CCBB",color:plzSearch.length>=4?"#FFF":"#8B9E82",fontSize:14,fontWeight:700,whiteSpace:"nowrap",border:"none",cursor:plzSearch.length>=4?"pointer":"default"}}>
+              🔍 Suchen
             </button>
           </div>
           <div style={{display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap",fontSize:13,fontWeight:600,color:P.textM}}>
