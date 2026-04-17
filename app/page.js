@@ -90,7 +90,7 @@ const ZoneEditor=({zones,onChange})=>{
   const del=i=>onChange(zones.filter((_,j)=>j!==i));
   return(<div><label style={{fontSize:11,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:6}}>Liefergebiete * <span style={{fontWeight:500,textTransform:"none",letterSpacing:0,color:"#A0A890"}}>Orte/Stadtteile die du belieferst</span></label>
     <div style={{display:"flex",flexDirection:"column",gap:8}}>
-      {zones.map((z,i)=>(<div key={i} style={{display:"flex",gap:8,alignItems:"center",padding:"12px 14px",background:"#EDE6FA",borderRadius:12,border:`1.5px solid ${P.border}`,flexWrap:"wrap"}}>
+      {zones.map((z,i)=>(<div key={i} style={{display:"flex",gap:8,alignItems:"center",padding:"12px 14px",background:"#E8F0E8",borderRadius:12,border:`1.5px solid ${P.border}`,flexWrap:"wrap"}}>
         <input type="text" placeholder="Ort/Stadtteil" value={z.name} onChange={e=>upd(i,"name",e.target.value)} style={{flex:2,minWidth:100,padding:"8px 12px",fontSize:13,fontWeight:600,border:`1.5px solid ${P.border}`,borderRadius:8,background:"#FFF",fontFamily:"inherit"}}/>
         <input type="text" placeholder="PLZ" value={z.plz} onChange={e=>upd(i,"plz",e.target.value)} style={{width:70,padding:"8px 12px",fontSize:13,fontWeight:600,border:`1.5px solid ${P.border}`,borderRadius:8,background:"#FFF",fontFamily:"inherit"}}/>
         <input type="text" placeholder="Kosten" value={z.cost} onChange={e=>upd(i,"cost",e.target.value)} style={{width:70,padding:"8px 12px",fontSize:13,fontWeight:600,border:`1.5px solid ${P.border}`,borderRadius:8,background:"#FFF",fontFamily:"inherit"}}/>
@@ -355,7 +355,7 @@ export default function App(){
                   <div style={{height:80,background:`linear-gradient(135deg, ${r.col}40, ${r.col}15)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>{CE[r.cats[0]]||"🍽️"}</div>
                   <div style={{padding:"14px 16px"}}>
                     <h4 style={{fontSize:15,fontWeight:800,marginBottom:4,lineHeight:1.2}}>{r.name}</h4>
-                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>{r.cats.slice(0,2).map(c=>(<span key={c} style={{fontSize:9,color:P.textM,fontWeight:700,background:"#EDE6FA",padding:"1px 6px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}</div>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>{r.cats.slice(0,2).map(c=>(<span key={c} style={{fontSize:9,color:P.textM,fontWeight:700,background:"#E8F0E8",padding:"1px 6px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}</div>
                     <div style={{display:"flex",gap:4,alignItems:"center"}}>
                       <span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:op?"#E8FFF3":"#FFF0F3",color:op?"#1B5E3B":"#C4314B"}}>{op?"Geöffnet":"Geschl."}</span>
                       {z&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>{z.cost==="0€"?"Gratis":z.cost}</span>}
@@ -420,14 +420,14 @@ export default function App(){
                         <div style={{width:48,height:48,borderRadius:14,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0,overflow:"hidden"}}>{r.imageUrl?<img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain",padding:4}} alt={r.name}/>:(CE[r.cats[0]]||"🍽️")}</div>
                         <div style={{minWidth:0}}>
                           <h3 style={{fontSize:17,fontWeight:800,lineHeight:1.2,marginBottom:4}}>{r.name}</h3>
-                          <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{r.cats.map(c=>(<span key={c} style={{fontSize:10,color:P.textM,fontWeight:700,background:"#EDE6FA",padding:"2px 8px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}</div>
+                          <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{r.cats.map(c=>(<span key={c} style={{fontSize:10,color:P.textM,fontWeight:700,background:"#E8F0E8",padding:"2px 8px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}</div>
                         </div>
                       </div>
                       <p style={{fontSize:13,color:P.textM,marginBottom:10,fontWeight:500}}>📍 {getAddr(r)}</p>
                       <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                         <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:100,background:op?"#E8FFF3":"#FFF0F3",color:op?"#1B5E3B":"#C4314B",display:"flex",alignItems:"center",gap:4}}><span style={{width:6,height:6,borderRadius:"50%",background:op?"#34D399":"#FF8FA3",display:"inline-block"}}/>{op?"Geöffnet":"Geschlossen"}</span>
-                        <span style={{fontSize:11,color:P.textM,fontWeight:600,background:"#EDE6FA",padding:"3px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>🕐 {th}</span>
-                        <span style={{fontSize:11,color:P.textM,fontWeight:600,background:"#EDE6FA",padding:"3px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>Min. {r.min}</span>
+                        <span style={{fontSize:11,color:P.textM,fontWeight:600,background:"#E8F0E8",padding:"3px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>🕐 {th}</span>
+                        <span style={{fontSize:11,color:P.textM,fontWeight:600,background:"#E8F0E8",padding:"3px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>Min. {r.min}</span>
                       </div>
                       {z&&<div style={{marginTop:8}}><span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>🚗 Lieferkosten: {z.cost==="0€"?"Kostenlos!":z.cost}</span></div>}
                       <div style={{marginTop:14,paddingTop:14,borderTop:`1px solid ${P.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}><span style={{fontSize:13,fontWeight:700,color:P.accent}}>Speisekarte ansehen →</span></div>
@@ -448,17 +448,17 @@ export default function App(){
                   <div style={{width:56,height:56,borderRadius:16,background:`${selRest.col}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,overflow:"hidden"}}>{selRest.imageUrl?<img src={selRest.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain",padding:4}} alt={selRest.name}/>:(CE[selRest.cats[0]]||"🍽️")}</div>
                   <div style={{flex:1}}>
                     <h2 style={{fontSize:26,fontWeight:900,letterSpacing:"-0.5px",marginBottom:6}}>{selRest.name}</h2>
-                    <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{selRest.cats.map(c=>(<span key={c} style={{fontSize:11,color:P.textM,fontWeight:700,background:"#EDE6FA",padding:"2px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}<span style={{fontSize:11,fontWeight:700,padding:"2px 10px",borderRadius:100,background:op?"#E8FFF3":"#FFF0F3",color:op?"#1B5E3B":"#C4314B"}}>{op?"Geöffnet":"Geschlossen"}</span></div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{selRest.cats.map(c=>(<span key={c} style={{fontSize:11,color:P.textM,fontWeight:700,background:"#E8F0E8",padding:"2px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}<span style={{fontSize:11,fontWeight:700,padding:"2px 10px",borderRadius:100,background:op?"#E8FFF3":"#FFF0F3",color:op?"#1B5E3B":"#C4314B"}}>{op?"Geöffnet":"Geschlossen"}</span></div>
                   </div>
                 </div>
               </div>
               <div style={{padding:"24px"}}>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))",gap:10,marginBottom:22}}>
-                  {[{i:"📍",l:"Adresse",v:getAddr(selRest)},{i:"📞",l:"Telefon",v:selRest.phone},{i:"💰",l:"Mindestbestellwert",v:selRest.min}].map((x,j)=>(<div key={j} style={{background:"#EDE6FA",borderRadius:12,padding:"12px 14px",border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:3}}>{x.i} {x.l}</div><div style={{fontSize:14,fontWeight:700}}>{x.v}</div></div>))}
+                  {[{i:"📍",l:"Adresse",v:getAddr(selRest)},{i:"📞",l:"Telefon",v:selRest.phone},{i:"💰",l:"Mindestbestellwert",v:selRest.min}].map((x,j)=>(<div key={j} style={{background:"#E8F0E8",borderRadius:12,padding:"12px 14px",border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:3}}>{x.i} {x.l}</div><div style={{fontSize:14,fontWeight:700}}>{x.v}</div></div>))}
                 </div>
 
                 {/* Delivery zones table */}
-                <div style={{background:"#EDE6FA",borderRadius:14,padding:"16px 18px",marginBottom:22,border:`1px solid ${P.border}`}}>
+                <div style={{background:"#E8F0E8",borderRadius:14,padding:"16px 18px",marginBottom:22,border:`1px solid ${P.border}`}}>
                   <div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:12}}>🚗 Liefergebiete & Kosten</div>
                   <div style={{display:"flex",flexDirection:"column",gap:4}}>
                     {selRest.zones.map((z,i)=>{const isMatch=plzSearch&&z.plz===plzSearch;return(
@@ -473,9 +473,9 @@ export default function App(){
                 {/* Daily special */}
                 {selRest.dailySpecial&&<div style={{background:"#FFF5EB",borderRadius:14,padding:"16px 18px",marginBottom:22,border:"1.5px solid #FFDDB5"}}><div style={{fontSize:10,fontWeight:800,color:"#BC6C25",textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:8}}>🔥 Tagesangebote</div><div style={{fontSize:14,fontWeight:700,color:"#8B4513",whiteSpace:"pre-line",lineHeight:1.6}}>{selRest.dailySpecial}</div></div>}
 
-                <div style={{background:"#EDE6FA",borderRadius:14,padding:"16px 18px",marginBottom:22,border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>🕐 Öffnungszeiten</div><SchedShow schedule={selRest.sched}/></div>
+                <div style={{background:"#E8F0E8",borderRadius:14,padding:"16px 18px",marginBottom:22,border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>🕐 Öffnungszeiten</div><SchedShow schedule={selRest.sched}/></div>
 
-                {selRest.pdfUrl?(<div style={{borderRadius:18,overflow:"hidden",border:`1.5px solid ${P.border}`,marginBottom:18}}><div style={{background:"#EDE6FA",padding:"14px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${P.border}`}}><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>📄</span><div><div style={{fontSize:14,fontWeight:700}}>Speisekarte</div><div style={{fontSize:11,color:P.textM}}>{selRest.pdfName}</div></div></div><a href={selRest.pdfUrl} download={selRest.pdfName} className="btn" style={{background:P.text,color:"#FFF",borderRadius:100,padding:"8px 18px",fontSize:12,fontWeight:700,textDecoration:"none"}}>↓ Download</a></div><iframe src={selRest.pdfUrl} style={{width:"100%",height:480,border:"none"}} title="PDF"/></div>):(<div style={{background:"#EDE6FA",borderRadius:18,padding:"40px 20px",textAlign:"center",border:`2px dashed ${P.border}`,marginBottom:18}}><div style={{fontSize:48,marginBottom:10}}>📄</div><h3 style={{fontSize:18,fontWeight:800,marginBottom:6}}>Speisekarte</h3><p style={{color:P.textM,fontSize:13}}>Demo-Eintrag — PDF in der Vollversion</p></div>)}
+                {selRest.pdfUrl?(<div style={{borderRadius:18,overflow:"hidden",border:`1.5px solid ${P.border}`,marginBottom:18}}><div style={{background:"#E8F0E8",padding:"14px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${P.border}`}}><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>📄</span><div><div style={{fontSize:14,fontWeight:700}}>Speisekarte</div><div style={{fontSize:11,color:P.textM}}>{selRest.pdfName}</div></div></div><a href={selRest.pdfUrl} download={selRest.pdfName} className="btn" style={{background:P.text,color:"#FFF",borderRadius:100,padding:"8px 18px",fontSize:12,fontWeight:700,textDecoration:"none"}}>↓ Download</a></div><iframe src={selRest.pdfUrl} style={{width:"100%",height:480,border:"none"}} title="PDF"/></div>):(<div style={{background:"#E8F0E8",borderRadius:18,padding:"40px 20px",textAlign:"center",border:`2px dashed ${P.border}`,marginBottom:18}}><div style={{fontSize:48,marginBottom:10}}>📄</div><h3 style={{fontSize:18,fontWeight:800,marginBottom:6}}>Speisekarte</h3><p style={{color:P.textM,fontSize:13}}>Demo-Eintrag — PDF in der Vollversion</p></div>)}
 
                 <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
                   {selRest.phone&&<a href={`tel:${selRest.phone}`} className="btn" style={{flex:1,minWidth:100,background:"#34D399",color:"#FFF",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>📞 Anrufen</a>}
