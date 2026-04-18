@@ -137,6 +137,26 @@ export default function CRMPage(){
     return true;
   });
 
+  const importFromRestaurants=async()=>{
+    const{data:rests}=await supabase.from("restaurants").select("*");
+    if(!rests||rests.length===0){setMsg("❌ Keine Lieferdienste zum Importieren.");return;}
+    let imported=0;
+    for(const r of rests){
+      const exists=contacts.some(c=>c.restaurant_id===r.id);
+      if(!exists){
+        await supabase.from("crm_contacts").insert({
+          company_name:r.name,phone:r.phone||null,address:`${r.street||""} ${r.house_nr||""}`.trim()||null,
+          plz:r.plz||null,city:r.city||null,status:r.is_premium?"premium":"aktiv",
+          pdf_url:r.pdf_url||null,restaurant_id:r.id,owner_id:user.id,
+          next_followup:new Date(Date.now()+90*24*60*60*1000).toISOString()
+        });
+        imported++;
+      }
+    }
+    await loadAll();
+    setMsg(imported>0?`✅ ${imported} Lieferdienst${imported!==1?"e":""} importiert! Follow-up in 3 Monaten gesetzt.`:"ℹ️ Alle Lieferdienste sind bereits im CRM.");
+  };
+
   if(authLoading)return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:P.bg,fontFamily:"system-ui"}}><p>Laden...</p></div>);
   if(!user)return(
     <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:P.bg,fontFamily:"system-ui"}}>
@@ -183,26 +203,6 @@ export default function CRMPage(){
         </div>)}
 
         {msg&&<div style={{padding:"12px 16px",borderRadius:12,marginBottom:16,background:msg.startsWith("❌")?"#FFF0F3":"#E8F5E9",fontSize:13,fontWeight:700,color:msg.startsWith("❌")?"#C4314B":"#1B5E3B"}}>{msg}</div>}
-
-  const importFromRestaurants=async()=>{
-    const{data:rests}=await supabase.from("restaurants").select("*");
-    if(!rests||rests.length===0){setMsg("❌ Keine Lieferdienste zum Importieren.");return;}
-    let imported=0;
-    for(const r of rests){
-      const exists=contacts.some(c=>c.restaurant_id===r.id);
-      if(!exists){
-        await supabase.from("crm_contacts").insert({
-          company_name:r.name,phone:r.phone||null,address:`${r.street||""} ${r.house_nr||""}`.trim()||null,
-          plz:r.plz||null,city:r.city||null,status:r.is_premium?"premium":"aktiv",
-          pdf_url:r.pdf_url||null,restaurant_id:r.id,owner_id:user.id,
-          next_followup:new Date(Date.now()+90*24*60*60*1000).toISOString()
-        });
-        imported++;
-      }
-    }
-    await loadAll();
-    setMsg(imported>0?`✅ ${imported} Lieferdienst${imported!==1?"e":""} importiert! Follow-up automatisch in 3 Monaten gesetzt.`:"ℹ️ Alle Lieferdienste sind bereits im CRM.");
-  };
 
         {/* Tabs */}
         <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
