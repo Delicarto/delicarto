@@ -204,7 +204,11 @@ export default function App(){
     setUser(null);setAuthMode("landing");setAuthEmail("");setAuthPass("");setAuthName("");
   };
 
-  const openDetail=(r)=>{setSelRest(r);setViewed(prev=>[r,...prev.filter(x=>x.id!==r.id)].slice(0,4));};
+  const openDetail=(r)=>{
+    setSelRest(r);setViewed(prev=>[r,...prev.filter(x=>x.id!==r.id)].slice(0,4));
+    // Count view in database
+    supabase.from("restaurants").update({views:(r.views||0)+1}).eq("id",r.id).then(()=>{});
+  };
 
   useEffect(()=>{const el=catRef.current;if(!el)return;const ck=()=>setShowCatFade(el.scrollWidth>el.clientWidth&&el.scrollLeft<el.scrollWidth-el.clientWidth-10);ck();el.addEventListener("scroll",ck);return()=>el.removeEventListener("scroll",ck);},[]);
 
@@ -454,7 +458,7 @@ export default function App(){
               </div>
               <div style={{padding:"24px"}}>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))",gap:10,marginBottom:22}}>
-                  {[{i:"📍",l:"Adresse",v:getAddr(selRest)},{i:"📞",l:"Telefon",v:selRest.phone},{i:"💰",l:"Mindestbestellwert",v:selRest.min}].map((x,j)=>(<div key={j} style={{background:"#E8F0E8",borderRadius:12,padding:"12px 14px",border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:3}}>{x.i} {x.l}</div><div style={{fontSize:14,fontWeight:700}}>{x.v}</div></div>))}
+                  {[{i:"📍",l:"Adresse",v:getAddr(selRest)},{i:"📞",l:"Telefon",v:selRest.phone},{i:"💰",l:"Mindestbestellwert",v:selRest.min},{i:"👁️",l:"Aufrufe",v:(selRest.views||0)+" ×"}].map((x,j)=>(<div key={j} style={{background:"#E8F0E8",borderRadius:12,padding:"12px 14px",border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:3}}>{x.i} {x.l}</div><div style={{fontSize:14,fontWeight:700}}>{x.v}</div></div>))}
                 </div>
 
                 {/* Delivery zones table */}
