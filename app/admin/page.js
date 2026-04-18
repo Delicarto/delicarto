@@ -145,6 +145,7 @@ export default function AdminPage(){
   const[authErr,setAuthErr]=useState("");
   const[rests,setRests]=useState([]);
   const[zones,setZones]=useState([]);
+  const[digiReqs,setDigiReqs]=useState([]);
   const[tab,setTab]=useState("list");
   const[editId,setEditId]=useState(null);
   const[editInit,setEditInit]=useState(null);
@@ -160,7 +161,8 @@ export default function AdminPage(){
   const loadAll=async()=>{
     const{data:r}=await supabase.from("restaurants").select("*").order("created_at",{ascending:false});
     const{data:z}=await supabase.from("delivery_zones").select("*");
-    setRests(r||[]);setZones(z||[]);
+    const{data:d}=await supabase.from("digi_requests").select("*").order("created_at",{ascending:false});
+    setRests(r||[]);setZones(z||[]);setDigiReqs(d||[]);
   };
   const doLogin=async()=>{setAuthErr("");const{data,error}=await supabase.auth.signInWithPassword({email,password:pass});if(error){setAuthErr("Falsche Zugangsdaten.");return;}setUser(data.user);};
   const doLogout=async()=>{await supabase.auth.signOut();setUser(null);};
@@ -201,6 +203,7 @@ export default function AdminPage(){
         <div style={{display:"flex",gap:8,marginBottom:24}}>
           <button onClick={()=>{setTab("list");setEditId(null);setEditInit(null);setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="list"?P.accent:P.card,color:tab==="list"?"#FFF":P.textM,border:tab==="list"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>📋 Alle ({rests.length})</button>
           <button onClick={()=>{setTab("add");setEditId(null);setEditInit(null);setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="add"?P.accent:P.card,color:tab==="add"?"#FFF":P.textM,border:tab==="add"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>+ Neu</button>
+          <button onClick={()=>{setTab("digi");setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="digi"?"#BC6C25":P.card,color:tab==="digi"?"#FFF":P.textM,border:tab==="digi"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>📸 Digi-Anfragen ({digiReqs.length})</button>
         </div>
         {tab==="list"&&(rests.length===0?(<div style={{textAlign:"center",padding:"60px",color:P.textM}}><div style={{fontSize:48}}>📋</div><p style={{fontWeight:700,marginTop:12}}>Noch keine Lieferdienste.</p></div>):(<div style={{display:"grid",gap:10}}>{rests.map(r=>{const rz=(zones||[]).filter(z=>z.restaurant_id===r.id);return(<div key={r.id} style={{background:P.card,borderRadius:16,padding:"18px 20px",border:`1.5px solid ${P.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
           <div style={{display:"flex",alignItems:"center",gap:14,flex:1,minWidth:200}}>
@@ -211,6 +214,36 @@ export default function AdminPage(){
         </div>);})}</div>))}
         {tab==="add"&&<RestForm key="new" user={user} onSaved={handleSaved} onCancel={()=>{setTab("list");setMsg("");}}/>}
         {tab==="edit"&&editInit&&<RestForm key={editId} initial={editInit} editId={editId} user={user} onSaved={handleSaved} onCancel={()=>{setTab("list");setEditId(null);setEditInit(null);setMsg("");}}/>}
+
+        {/* DIGI REQUESTS */}
+        {tab==="digi"&&(<div>
+          {digiReqs.length===0?(<div style={{textAlign:"center",padding:"60px",color:P.textM}}><div style={{fontSize:48}}>📸</div><p style={{fontWeight:700,marginTop:12}}>Keine Digitalisierungs-Anfragen.</p></div>):(
+            <div style={{display:"grid",gap:10}}>
+              {digiReqs.map(d=>(<div key={d.id} style={{background:P.card,borderRadius:16,padding:"18px 20px",border:`1.5px solid ${P.border}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"start",flexWrap:"wrap",gap:12}}>
+                  <div>
+                    <div style={{fontSize:16,fontWeight:800,marginBottom:4}}>{d.restaurant_name}</div>
+                    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:6}}>
+                      <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:100,background:"#FFF5EB",color:"#BC6C25",border:"1px solid #FFDDB5"}}>{d.package==="standard"?"Standard 29€":d.package==="profi"?"Profi 49€":"Premium 79€"}</span>
+                      <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:100,background:d.status==="neu"?"#E8F5E9":"#E8F0E8",color:d.status==="neu"?"#1B5E3B":"#6B7E6F"}}>{d.status==="neu"?"🆕 Neu":d.status==="bearbeitung"?"⏳ In Bearbeitung":"✅ Erledigt"}</span>
+                    </div>
+                    <div style={{fontSize:12,color:P.textM}}>📞 {d.phone}{d.email?` · ✉️ ${d.email}`:""}</div>
+                    {d.notes&&<div style={{fontSize:12,color:P.textM,marginTop:4}}>💬 {d.notes}</div>}
+                    <div style={{fontSize:10,color:P.textM,marginTop:6}}>{new Date(d.created_at).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}</div>
+                  </div>
+                  <div style={{display:"flex",gap:6}}>
+                    <select value={d.status||"neu"} onChange={async(e)=>{await supabase.from("digi_requests").update({status:e.target.value}).eq("id",d.id);loadAll();}} style={{padding:"6px 10px",borderRadius:8,border:`1px solid ${P.border}`,fontSize:12,fontWeight:700,background:"#FFF",cursor:"pointer"}}>
+                      <option value="neu">🆕 Neu</option>
+                      <option value="bearbeitung">⏳ In Bearbeitung</option>
+                      <option value="erledigt">✅ Erledigt</option>
+                    </select>
+                    <button onClick={async()=>{if(confirm("Anfrage löschen?")){await supabase.from("digi_requests").delete().eq("id",d.id);loadAll();}}} style={{padding:"6px 12px",borderRadius:8,fontSize:12,fontWeight:700,background:"#FFF0F3",border:"1px solid #FFD6E0",color:"#C4314B",cursor:"pointer"}}>🗑️</button>
+                  </div>
+                </div>
+              </div>))}
+            </div>
+          )}
+        </div>)}
       </div>
     </div>
   );
