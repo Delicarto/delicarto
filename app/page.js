@@ -119,6 +119,11 @@ export default function App(){
   const catRef=useRef(null),appRef=useRef(null);
   const[openFaq,setOpenFaq]=useState(null);
   const[mMenu,setMMenu]=useState(false);
+  const[cookieOk,setCookieOk]=useState(false);
+
+  // Check cookie consent on mount
+  useEffect(()=>{if(typeof window!=="undefined"&&localStorage.getItem("dc_cookies")==="ok")setCookieOk(true);},[]);
+  const acceptCookies=()=>{setCookieOk(true);if(typeof window!=="undefined")localStorage.setItem("dc_cookies","ok");};
 
   // Register state
   const[rStep,setRStep]=useState(1);
@@ -458,7 +463,7 @@ export default function App(){
               </div>
               <div style={{padding:"24px"}}>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))",gap:10,marginBottom:22}}>
-                  {[{i:"📍",l:"Adresse",v:getAddr(selRest)},{i:"📞",l:"Telefon",v:selRest.phone},{i:"💰",l:"Mindestbestellwert",v:selRest.min},{i:"👁️",l:"Aufrufe",v:(selRest.views||0)+" ×"}].map((x,j)=>(<div key={j} style={{background:"#E8F0E8",borderRadius:12,padding:"12px 14px",border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:3}}>{x.i} {x.l}</div><div style={{fontSize:14,fontWeight:700}}>{x.v}</div></div>))}
+                  {[{i:"📍",l:"Adresse",v:getAddr(selRest)},{i:"📞",l:"Telefon",v:selRest.phone},{i:"💰",l:"Mindestbestellwert",v:selRest.min}].map((x,j)=>(<div key={j} style={{background:"#E8F0E8",borderRadius:12,padding:"12px 14px",border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:3}}>{x.i} {x.l}</div><div style={{fontSize:14,fontWeight:700}}>{x.v}</div></div>))}
                 </div>
 
                 {/* Delivery zones table */}
@@ -553,6 +558,14 @@ export default function App(){
           </div>
         </div>
       </footer>
+
+      {/* COOKIE BANNER */}
+      {!cookieOk&&<div style={{position:"fixed",bottom:0,left:0,right:0,background:"#1B2A1D",color:"#FFF",padding:"16px 24px",zIndex:9999,boxShadow:"0 -4px 20px rgba(0,0,0,0.15)"}}>
+        <div style={{maxWidth:900,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap"}}>
+          <p style={{fontSize:13,lineHeight:1.5,flex:1,minWidth:250}}>Diese Website verwendet nur technisch notwendige Cookies für die Sitzungsverwaltung. <a href="#" onClick={e=>{e.preventDefault();setPage("datenschutz");}} style={{color:P.mint,textDecoration:"underline"}}>Mehr erfahren</a></p>
+          <button onClick={acceptCookies} style={{padding:"10px 28px",borderRadius:100,background:P.accent,color:"#FFF",border:"none",fontSize:14,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>Verstanden</button>
+        </div>
+      </div>}
     </div>
   );
 
