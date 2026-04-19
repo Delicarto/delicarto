@@ -383,7 +383,36 @@ export default function App(){
           </div>
 
           {/* PREMIUM SECTION — separate from regular results */}
-          {(()=>{const premFiltered=filtered.filter(r=>r.prem);const regFiltered=filtered.filter(r=>!r.prem);return(<>
+          {(()=>{const premFiltered=filtered.filter(r=>r.prem);const regFiltered=filtered.filter(r=>!r.prem);
+
+          const RestCard=({r,i,isPrem})=>{const op=isOpen(r.sched),th=todayH(r.sched),z=plzSearch?findZone(r,plzSearch):null;
+            // Default images per category
+            const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Vietnamesisch":"https://images.unsplash.com/photo-1555126634-323283e090fa?w=400&q=70","Japanisch":"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&q=70","Indisch":"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=70","Griechisch":"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70","Chinesisch":"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=70","Mexikanisch":"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70"};
+            const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";
+            return(
+            <div key={r.id} className="card" onClick={()=>openDetail(r)} style={{background:P.card,borderRadius:16,overflow:"hidden",animation:`fadeUp 0.4s ease ${i*0.04}s both`,position:"relative",border:isPrem?`2px solid ${P.accent}40`:`1.5px solid ${P.border}`}}>
+              {/* Image */}
+              <div style={{height:160,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
+                <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Keine Bestellannahme</div>}
+                {isPrem&&<div style={{position:"absolute",top:10,right:10,background:P.accent,color:"#FFF",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:100}}>⭐ PRO</div>}
+                {r.dailySpecial&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(188,108,37,0.9)",color:"#FFF",fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:100}}>🔥 Tagesangebote</div>}
+                {/* Small logo overlay */}
+                {r.imageUrl&&<div style={{position:"absolute",bottom:10,left:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
+              </div>
+              {/* Info */}
+              <div style={{padding:"14px 16px"}}>
+                <h3 style={{fontSize:16,fontWeight:800,marginBottom:4,lineHeight:1.2}}>{r.name}</h3>
+                <div style={{fontSize:12,color:P.textM,marginBottom:8}}>{r.cats.join(", ")}</div>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:P.textM}}>
+                  <span>🛒 Min. {r.min}</span>
+                  {z&&<span>🚗 {z.cost==="0€"?"Gratis Lieferung":z.cost+" Lieferung"}</span>}
+                </div>
+                {z&&z.cost==="0€"&&<div style={{marginTop:6}}><span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:100,background:"#E8F5E9",color:"#1B5E3B",border:"1px solid #A7D7A0"}}>🚗 Gratis Lieferung möglich</span></div>}
+              </div>
+            </div>);};
+
+          return(<>
             {premFiltered.length>0&&(<div style={{marginBottom:28}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
                 <div style={{background:`${P.accent}35`,padding:"4px 12px",borderRadius:100,display:"flex",alignItems:"center",gap:5}}>
@@ -392,29 +421,7 @@ export default function App(){
                 </div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))",gap:16}}>
-                {premFiltered.map((r,i)=>{const op=isOpen(r.sched),th=todayH(r.sched),z=plzSearch?findZone(r,plzSearch):null;return(
-                  <div key={r.id} className="card" onClick={()=>openDetail(r)} style={{background:`linear-gradient(135deg, ${P.accent}25, ${P.card})`,borderRadius:18,overflow:"hidden",animation:`fadeUp 0.4s ease ${i*0.04}s both`,position:"relative",border:`2px solid ${P.accent}30`}}>
-                    <div style={{height:4,background:`linear-gradient(90deg,${P.lila},${P.rosa})`}}/>
-                    <div style={{position:"absolute",top:14,right:14,background:P.accent,color:"#FFF",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:100}}>⭐ PRO</div>
-                    <div style={{padding:"20px 22px"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-                        <div style={{width:48,height:48,borderRadius:14,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0,overflow:"hidden"}}>{r.imageUrl?<img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain",padding:4}} alt={r.name}/>:(CE[r.cats[0]]||"🍽️")}</div>
-                        <div style={{minWidth:0}}>
-                          <h3 style={{fontSize:17,fontWeight:800,lineHeight:1.2,marginBottom:4}}>{r.name}</h3>
-                          <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{r.cats.map(c=>(<span key={c} style={{fontSize:10,color:P.textM,fontWeight:700,background:P.card,padding:"2px 8px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}</div>
-                        </div>
-                      </div>
-                      <p style={{fontSize:13,color:P.textM,marginBottom:10,fontWeight:500}}>📍 {getAddr(r)}</p>
-                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                        <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:100,background:op?"#E8FFF3":"#FFF0F3",color:op?"#1B5E3B":"#C4314B",display:"flex",alignItems:"center",gap:4}}><span style={{width:6,height:6,borderRadius:"50%",background:op?"#34D399":"#FF8FA3",display:"inline-block"}}/>{op?"Geöffnet":"Geschlossen"}</span>
-                        <span style={{fontSize:11,color:P.textM,fontWeight:600,background:"#FFF",padding:"3px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>🕐 {th}</span>
-                        <span style={{fontSize:11,color:P.textM,fontWeight:600,background:"#FFF",padding:"3px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>Min. {r.min}</span>
-                      </div>
-                      {z&&<div style={{marginTop:8}}><span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>🚗 Lieferkosten: {z.cost==="0€"?"Kostenlos!":z.cost}</span></div>}
-                      {r.dailySpecial&&<div style={{marginTop:8}}><span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:100,background:"#FFF5EB",color:"#BC6C25",border:"1px solid #FFDDB5"}}>🔥 Tagesangebote verfügbar</span></div>}
-                      <div style={{marginTop:14,paddingTop:14,borderTop:`1px solid ${P.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}><span style={{fontSize:13,fontWeight:700,color:P.accent}}>Speisekarte ansehen →</span><span style={{fontSize:10,color:"#8B9E82",fontWeight:600}}>{r.views}×</span></div>
-                    </div>
-                  </div>);})}
+                {premFiltered.map((r,i)=><RestCard key={r.id} r={r} i={i} isPrem={true}/>)}
               </div>
             </div>)}
 
@@ -422,27 +429,7 @@ export default function App(){
             {regFiltered.length>0&&(<>
               {premFiltered.length>0&&<div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:12}}>Alle Ergebnisse</div>}
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))",gap:16}}>
-                {regFiltered.map((r,i)=>{const op=isOpen(r.sched),th=todayH(r.sched),z=plzSearch?findZone(r,plzSearch):null;return(
-                  <div key={r.id} className="card" onClick={()=>openDetail(r)} style={{background:P.card,borderRadius:18,overflow:"hidden",animation:`fadeUp 0.4s ease ${i*0.04}s both`,position:"relative"}}>
-                    <div style={{height:4,background:`linear-gradient(90deg,${r.col},${r.col}80)`}}/>
-                    <div style={{padding:"20px 22px"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-                        <div style={{width:48,height:48,borderRadius:14,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0,overflow:"hidden"}}>{r.imageUrl?<img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain",padding:4}} alt={r.name}/>:(CE[r.cats[0]]||"🍽️")}</div>
-                        <div style={{minWidth:0}}>
-                          <h3 style={{fontSize:17,fontWeight:800,lineHeight:1.2,marginBottom:4}}>{r.name}</h3>
-                          <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{r.cats.map(c=>(<span key={c} style={{fontSize:10,color:P.textM,fontWeight:700,background:"#E8F0E8",padding:"2px 8px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}</div>
-                        </div>
-                      </div>
-                      <p style={{fontSize:13,color:P.textM,marginBottom:10,fontWeight:500}}>📍 {getAddr(r)}</p>
-                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                        <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:100,background:op?"#E8FFF3":"#FFF0F3",color:op?"#1B5E3B":"#C4314B",display:"flex",alignItems:"center",gap:4}}><span style={{width:6,height:6,borderRadius:"50%",background:op?"#34D399":"#FF8FA3",display:"inline-block"}}/>{op?"Geöffnet":"Geschlossen"}</span>
-                        <span style={{fontSize:11,color:P.textM,fontWeight:600,background:"#E8F0E8",padding:"3px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>🕐 {th}</span>
-                        <span style={{fontSize:11,color:P.textM,fontWeight:600,background:"#E8F0E8",padding:"3px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>Min. {r.min}</span>
-                      </div>
-                      {z&&<div style={{marginTop:8}}><span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>🚗 Lieferkosten: {z.cost==="0€"?"Kostenlos!":z.cost}</span></div>}
-                      <div style={{marginTop:14,paddingTop:14,borderTop:`1px solid ${P.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}><span style={{fontSize:13,fontWeight:700,color:P.accent}}>Speisekarte ansehen →</span></div>
-                    </div>
-                  </div>);})}
+                {regFiltered.map((r,i)=><RestCard key={r.id} r={r} i={i} isPrem={false}/>)}
               </div>
             </>)}
           </>);})()}
