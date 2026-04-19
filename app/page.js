@@ -316,7 +316,7 @@ export default function App(){
       <div style={{paddingTop:80,position:"relative",overflow:"hidden"}}>
         {/* Background food image */}
         <div style={{position:"absolute",inset:0,zIndex:0}}>
-          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1400&q=80" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
+          <img src="https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=1400&q=80" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
           <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(27,42,29,0.45) 0%, rgba(27,42,29,0.55) 60%, rgba(245,240,232,1) 100%)"}}/>
         </div>
         {/* Background logo watermark */}
