@@ -509,24 +509,25 @@ export default function App(){
       </div>
 
       {/* SO FUNKTIONIERT'S */}
-      <Reveal id="how" style={{padding:"60px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
-        <div style={{maxWidth:900,margin:"0 auto"}}>
-          <div style={{textAlign:"center",marginBottom:8}}><span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"1.5px"}}>So einfach geht's</span></div>
-          <h2 style={{fontSize:28,fontWeight:900,textAlign:"center",marginBottom:8,letterSpacing:"-0.5px"}}>In 3 Schritten zum Essen</h2>
-          <p style={{textAlign:"center",color:P.textM,fontSize:15,marginBottom:40}}>Kein Account nötig. Kein Umweg. Direkt bestellen.</p>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:20}}>
+      <Reveal id="how" style={{padding:"80px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
+        <div style={{maxWidth:1000,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:48}}>
+            <span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"2px"}}>So einfach geht's</span>
+            <h2 style={{fontSize:32,fontWeight:900,marginTop:8,letterSpacing:"-0.5px"}}>In 3 Schritten zum Essen</h2>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:32}}>
             {[
-              {emoji:"📍",bg:`${P.accent}20`,nr:"01",t:"PLZ eingeben",d:"Gib deine Postleitzahl ein — wir zeigen dir sofort, wer zu dir liefert."},
-              {emoji:"📄",bg:`${P.mint}20`,nr:"02",t:"Speisekarte ansehen",d:"Öffne die aktuelle Speisekarte als PDF — direkt im Browser, zum Zoomen und Blättern."},
-              {emoji:"📞",bg:`${P.warm}20`,nr:"03",t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei — du bestellst direkt beim Laden, ohne Provision."}
-            ].map((s,i)=>(<div key={i} style={{background:P.card,borderRadius:18,overflow:"hidden",border:`1.5px solid ${P.border}`}}>
-              <div style={{height:160,overflow:"hidden",position:"relative",background:s.bg,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <span style={{fontSize:64}}>{s.emoji}</span>
-                <div style={{position:"absolute",top:12,left:12,width:32,height:32,borderRadius:10,background:P.accent,color:"#FFF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900}}>{s.nr}</div>
+              {img:"https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&q=80",nr:"01",t:"PLZ eingeben",d:"Gib deine Postleitzahl ein und sieh sofort, welche Lieferdienste in deiner Nähe verfügbar sind — mit Öffnungszeiten, Liefergebieten und Kosten."},
+              {img:"https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&q=80",nr:"02",t:"Speisekarte ansehen",d:"Öffne die aktuelle Speisekarte als PDF direkt im Browser. Zoome, blättere und finde dein Lieblingsgericht — übersichtlich und immer aktuell."},
+              {img:"https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80",nr:"03",t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei. Du bestellst direkt beim Lieferdienst — ohne Zwischenhändler, ohne Provision, ohne Aufpreis."}
+            ].map((s,i)=>(<div key={i} style={{display:"flex",gap:0,background:P.card,borderRadius:20,overflow:"hidden",border:`1.5px solid ${P.border}`,flexDirection:i%2===1?"row-reverse":"row",minHeight:220}}>
+              <div style={{flex:"0 0 40%",position:"relative",overflow:"hidden",minHeight:200}}>
+                <img src={s.img} alt={s.t} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} onError={e=>{e.target.parentElement.style.background=`${P.accent}15`;e.target.style.display="none";}}/>
+                <div style={{position:"absolute",top:16,left:i%2===1?"auto":16,right:i%2===1?16:"auto",width:36,height:36,borderRadius:12,background:P.accent,color:"#FFF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900}}>{s.nr}</div>
               </div>
-              <div style={{padding:"20px 18px"}}>
-                <h3 style={{fontSize:17,fontWeight:800,marginBottom:6}}>{s.t}</h3>
-                <p style={{fontSize:13,color:P.textM,lineHeight:1.6}}>{s.d}</p>
+              <div style={{flex:1,padding:"32px 28px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                <h3 style={{fontSize:22,fontWeight:900,marginBottom:10,color:P.text}}>{s.t}</h3>
+                <p style={{fontSize:15,color:P.textM,lineHeight:1.7}}>{s.d}</p>
               </div>
             </div>))}
           </div>
