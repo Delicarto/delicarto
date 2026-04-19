@@ -322,8 +322,8 @@ export default function App(){
         <div style={{maxWidth:600,margin:"0 auto",padding:"100px 20px 50px",textAlign:"center",position:"relative",zIndex:2}}>
           {/* Small banner */}
           <div style={{marginBottom:20}}><span style={{background:"rgba(255,255,255,0.1)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:100,padding:"6px 14px",fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.9)",display:"inline-flex",alignItems:"center",gap:6}}><span style={{width:7,height:7,borderRadius:"50%",background:"#34D399",display:"inline-block"}}/>0% Provision</span></div>
-          <h1 style={{fontSize:"clamp(28px,7vw,56px)",fontWeight:900,lineHeight:1.08,marginBottom:16,letterSpacing:"-1.5px",color:"#FFF"}}>Speisekarte finden,<br/><span style={{color:"#34D399"}}>direkt bestellen.</span></h1>
-          <p style={{fontSize:"clamp(14px,3.5vw,17px)",color:"rgba(255,255,255,0.7)",lineHeight:1.6,maxWidth:440,margin:"0 auto 28px",fontWeight:400}}>Gib deine PLZ ein und finde sofort alle Lieferdienste in deiner Nähe — mit aktueller Speisekarte.</p>
+          <h1 style={{fontSize:"clamp(36px,9vw,56px)",fontWeight:900,lineHeight:1.08,marginBottom:16,letterSpacing:"-1.5px",color:"#FFF"}}>Speisekarte finden,<br/><span style={{color:"#34D399"}}>direkt bestellen.</span></h1>
+          <p style={{fontSize:"clamp(15px,4vw,17px)",color:"rgba(255,255,255,0.7)",lineHeight:1.6,maxWidth:440,margin:"0 auto 28px",fontWeight:400}}>Gib deine PLZ ein und finde sofort alle Lieferdienste in deiner Nähe — mit aktueller Speisekarte.</p>
           {/* PLZ Search */}
           <div style={{maxWidth:480,margin:"0 auto 14px",display:"flex",gap:0,background:"rgba(255,255,255,0.95)",borderRadius:100,overflow:"hidden",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
             <div style={{display:"flex",alignItems:"center",paddingLeft:16}}><span style={{fontSize:16,color:P.textM}}>📍</span></div>
