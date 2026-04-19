@@ -516,12 +516,12 @@ export default function App(){
           <p style={{textAlign:"center",color:P.textM,fontSize:15,marginBottom:40}}>Kein Account nötig. Kein Umweg. Direkt bestellen.</p>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:20}}>
             {[
-              {img:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80",nr:"01",t:"PLZ eingeben",d:"Gib deine Postleitzahl ein — wir zeigen dir sofort, wer zu dir liefert."},
-              {img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80",nr:"02",t:"Speisekarte ansehen",d:"Öffne die aktuelle Speisekarte als PDF — direkt im Browser, zum Zoomen und Blättern."},
-              {img:"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=80",nr:"03",t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei — du bestellst direkt beim Laden, ohne Provision."}
+              {emoji:"📍",bg:`${P.accent}20`,nr:"01",t:"PLZ eingeben",d:"Gib deine Postleitzahl ein — wir zeigen dir sofort, wer zu dir liefert."},
+              {emoji:"📄",bg:`${P.mint}20`,nr:"02",t:"Speisekarte ansehen",d:"Öffne die aktuelle Speisekarte als PDF — direkt im Browser, zum Zoomen und Blättern."},
+              {emoji:"📞",bg:`${P.warm}20`,nr:"03",t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei — du bestellst direkt beim Laden, ohne Provision."}
             ].map((s,i)=>(<div key={i} style={{background:P.card,borderRadius:18,overflow:"hidden",border:`1.5px solid ${P.border}`}}>
-              <div style={{height:160,overflow:"hidden",position:"relative"}}>
-                <img src={s.img} alt={s.t} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              <div style={{height:160,overflow:"hidden",position:"relative",background:s.bg,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <span style={{fontSize:64}}>{s.emoji}</span>
                 <div style={{position:"absolute",top:12,left:12,width:32,height:32,borderRadius:10,background:P.accent,color:"#FFF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900}}>{s.nr}</div>
               </div>
               <div style={{padding:"20px 18px"}}>
