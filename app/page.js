@@ -335,8 +335,8 @@ export default function App(){
               🔍 Suchen
             </button>
           </div>
-          <div style={{display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap",fontSize:13,fontWeight:600,color:P.textM}}>
-            <span>✓ <span style={{color:P.accent,fontWeight:800}}>0%</span> Provision</span>
+          <div style={{display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.85)"}}>
+            <span>✓ <span style={{color:"#A7D7A0",fontWeight:800}}>0%</span> Provision</span>
             <span>✓ Direkt beim Lieferdienst bestellen</span>
             <span>✓ Kostenlos</span>
           </div>
