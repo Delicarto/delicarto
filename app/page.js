@@ -313,10 +313,15 @@ export default function App(){
       </nav>
 
       {/* HERO */}
-      <div style={{paddingTop:80,background:`linear-gradient(180deg,${P.hero} 0%,${P.heroBg} 100%)`,position:"relative",overflow:"hidden"}}>
+      <div style={{paddingTop:80,position:"relative",overflow:"hidden"}}>
+        {/* Background food image */}
+        <div style={{position:"absolute",inset:0,zIndex:0}}>
+          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1400&q=80" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(245,240,232,0.92) 0%, rgba(245,240,232,0.96) 60%, rgba(245,240,232,1) 100%)"}}/>
+        </div>
         {/* Background logo watermark */}
-        <svg style={{position:"absolute",right:"-2%",top:70,width:"35%",maxWidth:300,opacity:0.06}} viewBox="0 0 200 200"><rect x="20" y="20" width="160" height="160" rx="40" stroke="#2D6A4F" strokeWidth="8" fill="none"/><rect x="35" y="35" width="130" height="130" rx="30" fill="#2D6A4F" opacity="0.15"/><path d="M80 150 C80 150 80 100 120 70" stroke="#40916C" strokeWidth="8" fill="none" strokeLinecap="round"/><path d="M65 140 C65 140 80 85 130 60" stroke="#6BAF8D" strokeWidth="6" fill="none" strokeLinecap="round"/><circle cx="120" cy="70" r="22" fill="#2D6A4F"/><circle cx="120" cy="70" r="10" fill="#F5F0E8"/></svg>
-        <div style={{maxWidth:700,margin:"0 auto",padding:"48px 24px 16px",textAlign:"center",position:"relative"}}>
+        <svg style={{position:"absolute",right:"-2%",top:70,width:"35%",maxWidth:300,opacity:0.06,zIndex:1}} viewBox="0 0 200 200"><rect x="20" y="20" width="160" height="160" rx="40" stroke="#2D6A4F" strokeWidth="8" fill="none"/><rect x="35" y="35" width="130" height="130" rx="30" fill="#2D6A4F" opacity="0.15"/><path d="M80 150 C80 150 80 100 120 70" stroke="#40916C" strokeWidth="8" fill="none" strokeLinecap="round"/><path d="M65 140 C65 140 80 85 130 60" stroke="#6BAF8D" strokeWidth="6" fill="none" strokeLinecap="round"/><circle cx="120" cy="70" r="22" fill="#2D6A4F"/><circle cx="120" cy="70" r="10" fill="#F5F0E8"/></svg>
+        <div style={{maxWidth:700,margin:"0 auto",padding:"48px 24px 16px",textAlign:"center",position:"relative",zIndex:2}}>
           <h1 style={{fontSize:"clamp(30px,5vw,50px)",fontWeight:900,lineHeight:1.08,marginBottom:14,letterSpacing:"-1.5px"}}><span style={{color:P.accent}}>Speisekarte</span> finden,<br/>direkt bestellen.</h1>
           <p style={{fontSize:16,color:P.textM,lineHeight:1.6,maxWidth:440,margin:"0 auto 28px",fontWeight:500}}>Gib deine PLZ ein und finde sofort alle Lieferdienste in deiner Nähe.</p>
           {/* PLZ Search */}
