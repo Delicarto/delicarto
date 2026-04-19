@@ -511,17 +511,23 @@ export default function App(){
       {/* SO FUNKTIONIERT'S */}
       <Reveal id="how" style={{padding:"60px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
         <div style={{maxWidth:900,margin:"0 auto"}}>
-          <h2 style={{fontSize:28,fontWeight:900,textAlign:"center",marginBottom:8,letterSpacing:"-0.5px"}}>So bestellst du</h2>
-          <p style={{textAlign:"center",color:P.textM,fontSize:15,marginBottom:40}}>Es ist ganz einfach.</p>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))",gap:20}}>
+          <div style={{textAlign:"center",marginBottom:8}}><span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"1.5px"}}>So einfach geht's</span></div>
+          <h2 style={{fontSize:28,fontWeight:900,textAlign:"center",marginBottom:8,letterSpacing:"-0.5px"}}>In 3 Schritten zum Essen</h2>
+          <p style={{textAlign:"center",color:P.textM,fontSize:15,marginBottom:40}}>Kein Account nötig. Kein Umweg. Direkt bestellen.</p>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:20}}>
             {[
-              {icon:(<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill={`${P.accent}25`}/><circle cx="32" cy="28" r="8" fill="none" stroke={P.lila} strokeWidth="2.5"/><circle cx="32" cy="28" r="3" fill={P.lila}/><path d="M32 36 L32 46" stroke={P.lila} strokeWidth="2.5" strokeLinecap="round"/></svg>),t:"Standort teilen",d:"PLZ eingeben oder Standort teilen — wir zeigen dir wer zu dir liefert."},
-              {icon:(<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill={`${P.mint}25`}/><rect x="18" y="16" width="28" height="32" rx="4" fill="none" stroke="#1B5E3B" strokeWidth="2.5"/><line x1="24" y1="26" x2="36" y2="26" stroke="#1B5E3B" strokeWidth="2" strokeLinecap="round" opacity="0.7"/><line x1="24" y1="32" x2="32" y2="32" stroke="#1B5E3B" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/><line x1="24" y1="38" x2="34" y2="38" stroke="#1B5E3B" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/></svg>),t:"Speisekarte ansehen",d:"Öffne die Karte als PDF — direkt im Browser, zum Zoomen und Blättern."},
-              {icon:(<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill={`${P.warm}25`}/><rect x="18" y="20" width="28" height="20" rx="10" fill="none" stroke="#BC6C25" strokeWidth="2.5"/><circle cx="28" cy="30" r="2" fill="#BC6C25"/><circle cx="36" cy="30" r="2" fill="#BC6C25"/><path d="M26 34 Q32 38 38 34" stroke="#BC6C25" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>),t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei — du bestellst direkt beim Laden."}
-            ].map((s,i)=>(<div key={i} style={{textAlign:"center",padding:"24px 16px"}}>
-              <div style={{marginBottom:16,display:"flex",justifyContent:"center"}}>{s.icon}</div>
-              <h3 style={{fontSize:17,fontWeight:800,marginBottom:6}}>{s.t}</h3>
-              <p style={{fontSize:13,color:P.textM,lineHeight:1.6}}>{s.d}</p>
+              {img:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80",nr:"01",t:"PLZ eingeben",d:"Gib deine Postleitzahl ein — wir zeigen dir sofort, wer zu dir liefert."},
+              {img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80",nr:"02",t:"Speisekarte ansehen",d:"Öffne die aktuelle Speisekarte als PDF — direkt im Browser, zum Zoomen und Blättern."},
+              {img:"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=80",nr:"03",t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei — du bestellst direkt beim Laden, ohne Provision."}
+            ].map((s,i)=>(<div key={i} style={{background:P.card,borderRadius:18,overflow:"hidden",border:`1.5px solid ${P.border}`}}>
+              <div style={{height:160,overflow:"hidden",position:"relative"}}>
+                <img src={s.img} alt={s.t} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                <div style={{position:"absolute",top:12,left:12,width:32,height:32,borderRadius:10,background:P.accent,color:"#FFF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900}}>{s.nr}</div>
+              </div>
+              <div style={{padding:"20px 18px"}}>
+                <h3 style={{fontSize:17,fontWeight:800,marginBottom:6}}>{s.t}</h3>
+                <p style={{fontSize:13,color:P.textM,lineHeight:1.6}}>{s.d}</p>
+              </div>
             </div>))}
           </div>
         </div>
@@ -529,8 +535,18 @@ export default function App(){
 
       {/* FAQ */}
       <Reveal id="faq" style={{maxWidth:700,margin:"0 auto",padding:"60px 24px 80px"}}><h2 style={{fontSize:28,fontWeight:900,marginBottom:24,textAlign:"center",letterSpacing:"-0.5px"}}>Häufige Fragen</h2><div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {[{q:"Was kostet DeliCarto für mich?",a:"Nichts. DeliCarto ist für Kunden komplett kostenlos."},{q:"Wie bestelle ich?",a:"Du findest die Speisekarte, rufst direkt beim Lieferdienst an oder schreibst per WhatsApp. Keine Zwischenhändler."},{q:"Warum nicht Lieferando?",a:"Lieferando nimmt bis zu 30% Provision. Hier bestellt der Kunde direkt — das Essen kann günstiger sein."},{q:"Woher kommen die Lieferkosten?",a:"Jeder Lieferdienst legt seine Liefergebiete und Kosten selbst fest. Die Preise siehst du direkt auf der Karte."}].map((f,i)=>(<div key={i} className="clift" style={{background:P.card,borderRadius:14,border:`1.5px solid ${P.border}`,overflow:"hidden",cursor:"pointer"}} onClick={()=>setOpenFaq(openFaq===i?null:i)}><div style={{padding:"18px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3 style={{fontSize:15,fontWeight:700}}>{f.q}</h3><span style={{fontSize:18,color:P.accent,fontWeight:800,transition:"transform 0.3s",transform:openFaq===i?"rotate(45deg)":"none",flexShrink:0,marginLeft:10}}>+</span></div>{openFaq===i&&<div style={{padding:"0 22px 18px"}}><p style={{fontSize:14,color:P.textM,lineHeight:1.7}}>{f.a}</p></div>}</div>))}
+        {[{q:"Was kostet DeliCarto für mich?",a:"Nichts. DeliCarto ist für Kunden komplett kostenlos."},{q:"Wie bestelle ich?",a:"Du findest die Speisekarte, rufst direkt beim Lieferdienst an oder schreibst per WhatsApp. Keine Zwischenhändler."},{q:"Warum nicht Lieferando?",a:"Lieferando nimmt bis zu 30% Provision. Hier bestellt der Kunde direkt — das Essen kann günstiger sein."},{q:"Woher kommen die Lieferkosten?",a:"Jeder Lieferdienst legt seine Liefergebiete und Kosten selbst fest. Die Preise siehst du direkt auf der Karte."},{q:"Wie kann ich meinen Lieferdienst eintragen?",a:"Klicke oben auf 'Lieferdienst eintragen', registriere dich kostenlos und lade deine Speisekarte als PDF hoch. In unter 5 Minuten bist du online — ohne Provision, ohne Vertrag."}].map((f,i)=>(<div key={i} className="clift" style={{background:P.card,borderRadius:14,border:`1.5px solid ${P.border}`,overflow:"hidden",cursor:"pointer"}} onClick={()=>setOpenFaq(openFaq===i?null:i)}><div style={{padding:"18px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3 style={{fontSize:15,fontWeight:700}}>{f.q}</h3><span style={{fontSize:18,color:P.accent,fontWeight:800,transition:"transform 0.3s",transform:openFaq===i?"rotate(45deg)":"none",flexShrink:0,marginLeft:10}}>+</span></div>{openFaq===i&&<div style={{padding:"0 22px 18px"}}><p style={{fontSize:14,color:P.textM,lineHeight:1.7}}>{f.a}</p></div>}</div>))}
       </div></Reveal>
+
+      {/* CTA BANNER */}
+      <div style={{background:`linear-gradient(135deg, ${P.accent}, #40916C)`,padding:"60px 24px",textAlign:"center"}}>
+        <div style={{maxWidth:600,margin:"0 auto"}}>
+          <div style={{fontSize:40,marginBottom:12}}>🍕</div>
+          <h2 style={{fontSize:26,fontWeight:900,color:"#FFF",marginBottom:10}}>Du betreibst einen Lieferdienst?</h2>
+          <p style={{fontSize:15,color:"rgba(255,255,255,0.8)",lineHeight:1.6,marginBottom:24}}>Trage deinen Laden kostenlos ein und werde von Kunden in deiner Nähe gefunden. Keine Provision, keine versteckten Kosten.</p>
+          <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"#FFF",color:P.accent,borderRadius:100,padding:"14px 36px",fontSize:16,fontWeight:700,border:"none",boxShadow:"0 4px 16px rgba(0,0,0,0.2)"}}>Jetzt kostenlos eintragen →</button>
+        </div>
+      </div>
 
       {/* FOOTER — Lieferando-style */}
       <footer style={{background:"#1B2A1D",color:"rgba(255,255,255,0.5)",padding:"48px 24px 28px"}}>
