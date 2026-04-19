@@ -316,7 +316,7 @@ export default function App(){
       <div style={{position:"relative",overflow:"hidden",minHeight:"85vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
         {/* Background food image */}
         <div style={{position:"absolute",inset:0,zIndex:0}}>
-          <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&q=80" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
+          <img src="https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/hero-food-dark.jpg" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
           <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.6) 50%, rgba(245,240,232,1) 100%)"}}/>
         </div>
         <div style={{maxWidth:700,margin:"0 auto",padding:"120px 24px 60px",textAlign:"center",position:"relative",zIndex:2}}>
