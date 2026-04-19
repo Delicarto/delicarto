@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /crm
+
+Sitemap: https://delicarto.de/sitemap.xml
