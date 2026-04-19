@@ -535,12 +535,11 @@ export default function App(){
       </div></Reveal>
 
       {/* CTA BANNER */}
-      <div style={{background:`linear-gradient(135deg, ${P.accent}, #40916C)`,padding:"60px 24px",textAlign:"center"}}>
+      <div style={{background:`linear-gradient(135deg, ${P.accent}, #40916C)`,padding:"40px 24px",textAlign:"center"}}>
         <div style={{maxWidth:600,margin:"0 auto"}}>
-          <div style={{fontSize:40,marginBottom:12}}>🍕</div>
-          <h2 style={{fontSize:26,fontWeight:900,color:"#FFF",marginBottom:10}}>Du betreibst einen Lieferdienst?</h2>
-          <p style={{fontSize:15,color:"rgba(255,255,255,0.8)",lineHeight:1.6,marginBottom:24}}>Trage deinen Laden kostenlos ein und werde von Kunden in deiner Nähe gefunden. Keine Provision, keine versteckten Kosten.</p>
-          <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"#FFF",color:P.accent,borderRadius:100,padding:"14px 36px",fontSize:16,fontWeight:700,border:"none",boxShadow:"0 4px 16px rgba(0,0,0,0.2)"}}>Jetzt kostenlos eintragen →</button>
+          <h2 style={{fontSize:24,fontWeight:900,color:"#FFF",marginBottom:10}}>Du betreibst einen Lieferdienst?</h2>
+          <p style={{fontSize:14,color:"rgba(255,255,255,0.8)",lineHeight:1.6,marginBottom:20}}>Trage deinen Laden kostenlos ein und werde von Kunden in deiner Nähe gefunden. Keine Provision, keine versteckten Kosten.</p>
+          <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"#FFF",color:P.accent,borderRadius:100,padding:"12px 32px",fontSize:15,fontWeight:700,border:"none",boxShadow:"0 4px 16px rgba(0,0,0,0.2)"}}>Jetzt kostenlos eintragen →</button>
         </div>
       </div>
 
