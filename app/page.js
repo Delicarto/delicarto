@@ -512,9 +512,9 @@ export default function App(){
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:32}}>
             {[
-              {img:"https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&q=80",nr:"01",t:"PLZ eingeben",d:"Gib deine Postleitzahl ein und sieh sofort, welche Lieferdienste in deiner Nähe verfügbar sind — mit Öffnungszeiten, Liefergebieten und Kosten."},
-              {img:"https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&q=80",nr:"02",t:"Speisekarte ansehen",d:"Öffne die aktuelle Speisekarte als PDF direkt im Browser. Zoome, blättere und finde dein Lieblingsgericht — übersichtlich und immer aktuell."},
-              {img:"https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80",nr:"03",t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei. Du bestellst direkt beim Lieferdienst — ohne Zwischenhändler, ohne Provision, ohne Aufpreis."}
+              {img:"https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/step1.png",nr:"01",t:"PLZ eingeben",d:"Gib deine Postleitzahl ein und sieh sofort, welche Lieferdienste in deiner Nähe verfügbar sind — mit Öffnungszeiten, Liefergebieten und Kosten."},
+              {img:"https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/step2.png",nr:"02",t:"Speisekarte ansehen",d:"Öffne die aktuelle Speisekarte als PDF direkt im Browser. Zoome, blättere und finde dein Lieblingsgericht — übersichtlich und immer aktuell."},
+              {img:"https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/step3.png",nr:"03",t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei. Du bestellst direkt beim Lieferdienst — ohne Zwischenhändler, ohne Provision, ohne Aufpreis."}
             ].map((s,i)=>(<div key={i} style={{display:"flex",gap:0,background:P.card,borderRadius:20,overflow:"hidden",border:`1.5px solid ${P.border}`,flexDirection:i%2===1?"row-reverse":"row",minHeight:220}}>
               <div style={{flex:"0 0 40%",position:"relative",overflow:"hidden",minHeight:200}}>
                 <img src={s.img} alt={s.t} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} onError={e=>{e.target.parentElement.style.background=`${P.accent}15`;e.target.style.display="none";}}/>
