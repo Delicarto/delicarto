@@ -343,8 +343,9 @@ export default function App(){
       {/* RESULTS */}
       <div ref={appRef} id="app" style={{maxWidth:1100,margin:"0 auto",padding:"24px 24px 60px"}}>
         {!selRest?(<>
+          {plzSearch.length>=4?(<>
           {/* Text search */}
-          {plzSearch.length>=4&&<div style={{marginBottom:16}}><input type="text" placeholder="🔍 Zusätzlich nach Name oder Küche filtern…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:"100%",maxWidth:400,padding:"12px 16px",fontSize:14,fontWeight:500,border:`1.5px solid ${P.border}`,borderRadius:100,background:"#FFF",color:P.text}}/></div>}
+          <div style={{marginBottom:16}}><input type="text" placeholder="🔍 Zusätzlich nach Name oder Küche filtern…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:"100%",maxWidth:400,padding:"12px 16px",fontSize:14,fontWeight:500,border:`1.5px solid ${P.border}`,borderRadius:100,background:"#FFF",color:P.text}}/></div>
 
           {/* Categories */}
           <div style={{position:"relative",marginBottom:18}}>
@@ -447,6 +448,7 @@ export default function App(){
           </>);})()}
 
           {filtered.length===0&&plzSearch.length>=4&&(<div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:48,marginBottom:12}}>😕</div><h3 style={{fontSize:20,fontWeight:800,marginBottom:10}}>Noch kein Lieferdienst für PLZ {plzSearch}</h3><p style={{color:P.textM,fontSize:14,marginBottom:20}}>Kennst du einen? Schlage ihn vor oder trage ihn selbst ein!</p><button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:P.text,color:"#FFF",borderRadius:100,padding:"12px 28px",fontSize:14,fontWeight:700}}>Lieferdienst eintragen</button></div>)}
+        </>):(<div style={{textAlign:"center",padding:"80px 20px"}}><div style={{fontSize:56,marginBottom:16}}>🍕</div><h3 style={{fontSize:22,fontWeight:900,marginBottom:8}}>Wo willst du bestellen?</h3><p style={{color:P.textM,fontSize:15,maxWidth:400,margin:"0 auto"}}>Gib oben deine PLZ ein und entdecke alle Lieferdienste in deiner Nähe.</p></div>)}
         </>):(
           /* DETAIL VIEW */
           (()=>{const op=isOpen(selRest.sched),z=plzSearch?findZone(selRest,plzSearch):null;return(<div style={{animation:"fadeUp 0.3s ease"}}><button className="btn2" onClick={()=>setSelRest(null)} style={{background:P.bg,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"8px 18px",fontSize:13,fontWeight:700,marginBottom:18,color:P.textM}}>← Zurück zur Übersicht</button>
