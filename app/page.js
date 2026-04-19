@@ -441,55 +441,92 @@ export default function App(){
         </>):null}
         </>):(
           /* DETAIL VIEW */
-          (()=>{const op=isOpen(selRest.sched),z=plzSearch?findZone(selRest,plzSearch):null;return(<div style={{animation:"fadeUp 0.3s ease"}}><button className="btn2" onClick={()=>setSelRest(null)} style={{background:P.bg,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"8px 18px",fontSize:13,fontWeight:700,marginBottom:18,color:P.textM}}>← Zurück zur Übersicht</button>
-            <div style={{background:P.card,borderRadius:24,overflow:"hidden",border:`1.5px solid ${P.border}`}}>
-              <div style={{height:5,background:`linear-gradient(90deg,${selRest.col},${P.mint},${selRest.col})`}}/>
-              <div style={{padding:"28px 24px",borderBottom:`1px solid ${P.border}`}}>
-                <div style={{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-                  <div style={{width:56,height:56,borderRadius:16,background:`${selRest.col}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,overflow:"hidden"}}>{selRest.imageUrl?<img src={selRest.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain",padding:4}} alt={selRest.name}/>:(CE[selRest.cats[0]]||"🍽️")}</div>
-                  <div style={{flex:1}}>
-                    <h2 style={{fontSize:26,fontWeight:900,letterSpacing:"-0.5px",marginBottom:6}}>{selRest.name}</h2>
-                    <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{selRest.cats.map(c=>(<span key={c} style={{fontSize:11,color:P.textM,fontWeight:700,background:"#E8F0E8",padding:"2px 10px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}<span style={{fontSize:11,fontWeight:700,padding:"2px 10px",borderRadius:100,background:op?"#E8FFF3":"#FFF0F3",color:op?"#1B5E3B":"#C4314B"}}>{op?"Geöffnet":"Geschlossen"}</span></div>
-                  </div>
+          (()=>{const op=isOpen(selRest.sched),z=plzSearch?findZone(selRest,plzSearch):null;
+            const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=800&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&q=70"};
+            const heroImg=defImgs[selRest.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=70";
+          return(<div style={{animation:"fadeUp 0.3s ease"}}>
+            <button className="btn2" onClick={()=>setSelRest(null)} style={{background:"rgba(0,0,0,0.05)",border:"none",borderRadius:100,padding:"8px 18px",fontSize:13,fontWeight:700,marginBottom:18,color:P.textM}}>← Zurück</button>
+
+            {/* Hero Image */}
+            <div style={{borderRadius:20,overflow:"hidden",marginBottom:24,position:"relative",height:220,background:"#E8E0D4"}}>
+              <img src={heroImg} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)"}}/>
+              {/* Logo overlay */}
+              <div style={{position:"absolute",bottom:16,left:20,display:"flex",alignItems:"end",gap:14}}>
+                <div style={{width:64,height:64,borderRadius:16,background:"#FFF",boxShadow:"0 4px 16px rgba(0,0,0,0.2)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:selRest.imageUrl?3:0,fontSize:30,flexShrink:0}}>
+                  {selRest.imageUrl?<img src={selRest.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:(CE[selRest.cats[0]]||"🍽️")}
+                </div>
+                <div>
+                  <h2 style={{fontSize:24,fontWeight:900,color:"#FFF",textShadow:"0 2px 8px rgba(0,0,0,0.4)",marginBottom:4}}>{selRest.name}</h2>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{selRest.cats.map(c=>(<span key={c} style={{fontSize:10,color:"#FFF",fontWeight:600,background:"rgba(255,255,255,0.2)",backdropFilter:"blur(4px)",padding:"2px 8px",borderRadius:100}}>{CE[c]} {c}</span>))}</div>
                 </div>
               </div>
-              <div style={{padding:"24px"}}>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))",gap:10,marginBottom:22}}>
-                  {[{i:"📍",l:"Adresse",v:getAddr(selRest)},{i:"📞",l:"Telefon",v:selRest.phone},{i:"💰",l:"Mindestbestellwert",v:selRest.min}].map((x,j)=>(<div key={j} style={{background:"#E8F0E8",borderRadius:12,padding:"12px 14px",border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:3}}>{x.i} {x.l}</div><div style={{fontSize:14,fontWeight:700}}>{x.v}</div></div>))}
-                </div>
+              {/* Status badge */}
+              <div style={{position:"absolute",top:16,right:16}}><span style={{fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:100,background:op?"rgba(52,211,153,0.9)":"rgba(255,143,163,0.9)",color:"#FFF"}}>{op?"Geöffnet":"Geschlossen"}</span></div>
+              {selRest.prem&&<div style={{position:"absolute",top:16,left:16,background:"rgba(45,106,79,0.9)",color:"#FFF",fontSize:11,fontWeight:800,padding:"4px 12px",borderRadius:100}}>⭐ Premium</div>}
+            </div>
 
-                {/* Delivery zones table */}
-                <div style={{background:"#E8F0E8",borderRadius:14,padding:"16px 18px",marginBottom:22,border:`1px solid ${P.border}`}}>
-                  <div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:12}}>🚗 Liefergebiete & Kosten</div>
-                  <div style={{display:"flex",flexDirection:"column",gap:4}}>
-                    {selRest.zones.map((z,i)=>{const isMatch=plzSearch&&z.plz===plzSearch;return(
-                      <div key={i} style={{padding:"10px 12px",borderRadius:8,background:isMatch?"#E8F4FD":"#FFF",border:isMatch?`2px solid #93C5FD`:`1px solid ${P.border}`}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-                          <div><span style={{fontSize:16,fontWeight:800}}>{z.name}</span><span style={{fontSize:14,color:P.textM,marginLeft:6}}>({z.plz})</span></div>
-                        </div>
-                        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                          <span style={{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:100,background:z.cost==="0€"?"#E8F5E9":"#FFF5EB",color:z.cost==="0€"?"#1B5E3B":"#BC6C25"}}>🚗 {z.cost==="0€"?"Kostenlos":z.cost}</span>
-                          {z.minOrder&&<span style={{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#F0EBF8",color:"#6B7E6F"}}>Min. {z.minOrder}</span>}
-                        </div>
-                      </div>
-                    );})}
-                  </div>
-                </div>
+            {/* Action Buttons */}
+            <div style={{display:"flex",gap:8,marginBottom:24,flexWrap:"wrap"}}>
+              {selRest.phone&&<a href={`tel:${selRest.phone}`} className="btn" style={{flex:1,minWidth:90,background:P.accent,color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center",gap:6}}>📞 Anrufen</a>}
+              {selRest.whatsapp&&<a href={`https://wa.me/${selRest.whatsapp.replace(/[^0-9]/g,"")}`} target="_blank" rel="noopener" className="btn" style={{flex:1,minWidth:90,background:"#25D366",color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</a>}
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getAddr(selRest))}`} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:90,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>📍 Route</a>
+            </div>
 
-                {/* Daily special */}
-                {selRest.dailySpecial&&<div style={{background:"#FFF5EB",borderRadius:14,padding:"16px 18px",marginBottom:22,border:"1.5px solid #FFDDB5"}}><div style={{fontSize:10,fontWeight:800,color:"#BC6C25",textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:8}}>🔥 Tagesangebote</div><div style={{fontSize:14,fontWeight:700,color:"#8B4513",whiteSpace:"pre-line",lineHeight:1.6}}>{selRest.dailySpecial}</div></div>}
-
-                <div style={{background:"#E8F0E8",borderRadius:14,padding:"16px 18px",marginBottom:22,border:`1px solid ${P.border}`}}><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>🕐 Öffnungszeiten</div><SchedShow schedule={selRest.sched}/></div>
-
-                {selRest.pdfUrl?(<div style={{borderRadius:18,overflow:"hidden",border:`1.5px solid ${P.border}`,marginBottom:18}}><div style={{background:"#E8F0E8",padding:"14px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${P.border}`}}><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>📄</span><div><div style={{fontSize:14,fontWeight:700}}>Speisekarte</div><div style={{fontSize:11,color:P.textM}}>{selRest.pdfName}</div></div></div><a href={selRest.pdfUrl} download={selRest.pdfName} className="btn" style={{background:P.text,color:"#FFF",borderRadius:100,padding:"8px 18px",fontSize:12,fontWeight:700,textDecoration:"none"}}>↓ Download</a></div><iframe src={selRest.pdfUrl} style={{width:"100%",height:480,border:"none"}} title="PDF"/></div>):(<div style={{background:"#E8F0E8",borderRadius:18,padding:"40px 20px",textAlign:"center",border:`2px dashed ${P.border}`,marginBottom:18}}><div style={{fontSize:48,marginBottom:10}}>📄</div><h3 style={{fontSize:18,fontWeight:800,marginBottom:6}}>Speisekarte</h3><p style={{color:P.textM,fontSize:13}}>Demo-Eintrag — PDF in der Vollversion</p></div>)}
-
-                <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-                  {selRest.phone&&<a href={`tel:${selRest.phone}`} className="btn" style={{flex:1,minWidth:100,background:"#34D399",color:"#FFF",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>📞 Anrufen</a>}
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getAddr(selRest))}`} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:100,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>📍 Route</a>
-                  {selRest.whatsapp&&<a href={`https://wa.me/${selRest.whatsapp.replace(/[^0-9]/g,"")}`} target="_blank" rel="noopener" className="btn" style={{flex:1,minWidth:100,background:"#25D366",color:"#FFF",borderRadius:100,padding:"13px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</a>}
-                </div>
+            {/* Info Grid */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))",gap:12,marginBottom:24}}>
+              <div style={{background:P.card,borderRadius:14,padding:"16px",border:`1.5px solid ${P.border}`}}>
+                <div style={{fontSize:11,color:P.textM,fontWeight:600,marginBottom:6}}>📍 Adresse</div>
+                <div style={{fontSize:15,fontWeight:700}}>{getAddr(selRest)}</div>
               </div>
-            </div></div>);})()
+              <div style={{background:P.card,borderRadius:14,padding:"16px",border:`1.5px solid ${P.border}`}}>
+                <div style={{fontSize:11,color:P.textM,fontWeight:600,marginBottom:6}}>📞 Telefon</div>
+                <div style={{fontSize:15,fontWeight:700}}>{selRest.phone||"—"}</div>
+              </div>
+              <div style={{background:P.card,borderRadius:14,padding:"16px",border:`1.5px solid ${P.border}`}}>
+                <div style={{fontSize:11,color:P.textM,fontWeight:600,marginBottom:6}}>🛒 Mindestbestellwert</div>
+                <div style={{fontSize:15,fontWeight:700}}>{selRest.min}</div>
+              </div>
+            </div>
+
+            {/* Delivery Zones */}
+            <div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
+              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:14}}>🚗 Liefergebiete & Kosten</div>
+              <div style={{display:"grid",gap:8}}>
+                {selRest.zones.map((zo,i)=>{const isMatch=plzSearch&&zo.plz===plzSearch;return(
+                  <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",borderRadius:12,background:isMatch?"#E8F4FD":"#F8F6F2",border:isMatch?"2px solid #93C5FD":"1px solid transparent"}}>
+                    <div><span style={{fontSize:15,fontWeight:700}}>{zo.name}</span><span style={{fontSize:13,color:P.textM,marginLeft:6}}>{zo.plz}</span></div>
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                      <span style={{fontSize:13,fontWeight:700,color:zo.cost==="0€"?"#1B5E3B":"#BC6C25"}}>{zo.cost==="0€"?"Gratis":zo.cost}</span>
+                      {zo.minOrder&&<span style={{fontSize:11,color:P.textM,background:"#F0EBE0",padding:"2px 8px",borderRadius:100}}>ab {zo.minOrder}</span>}
+                    </div>
+                  </div>
+                );})}
+              </div>
+            </div>
+
+            {/* Daily Special */}
+            {selRest.dailySpecial&&<div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:"1.5px solid #FFDDB5"}}>
+              <div style={{fontSize:13,fontWeight:800,color:"#BC6C25",marginBottom:10}}>🔥 Tagesangebote</div>
+              <div style={{fontSize:14,fontWeight:600,color:"#8B4513",whiteSpace:"pre-line",lineHeight:1.7}}>{selRest.dailySpecial}</div>
+            </div>}
+
+            {/* Opening Hours */}
+            <div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
+              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10}}>🕐 Öffnungszeiten</div>
+              <SchedShow schedule={selRest.sched}/>
+            </div>
+
+            {/* PDF Viewer */}
+            {selRest.pdfUrl?(<div style={{background:P.card,borderRadius:16,overflow:"hidden",marginBottom:24,border:`1.5px solid ${P.border}`}}>
+              <div style={{padding:"16px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${P.border}`}}>
+                <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:20}}>📄</span><div><div style={{fontSize:14,fontWeight:700}}>Speisekarte</div><div style={{fontSize:11,color:P.textM}}>{selRest.pdfName}</div></div></div>
+                <a href={selRest.pdfUrl} download={selRest.pdfName} className="btn" style={{background:P.accent,color:"#FFF",borderRadius:100,padding:"8px 20px",fontSize:12,fontWeight:700,textDecoration:"none"}}>↓ Download</a>
+              </div>
+              <iframe src={selRest.pdfUrl} style={{width:"100%",height:500,border:"none"}} title="PDF"/>
+            </div>):null}
+
+          </div>);})()
         )}
       </div>
 
