@@ -316,7 +316,7 @@ export default function App(){
       <div style={{position:"relative",overflow:"hidden",minHeight:"85vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
         {/* Background food image */}
         <div style={{position:"absolute",inset:0,zIndex:0}}>
-          <img src="https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=1400&q=80" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
+          <img src="https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1600&q=80" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
           <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.55)"}}/>
         </div>
         <div style={{maxWidth:700,margin:"0 auto",padding:"120px 24px 60px",textAlign:"center",position:"relative",zIndex:2}}>
@@ -448,7 +448,7 @@ export default function App(){
           </>);})()}
 
           {filtered.length===0&&plzSearch.length>=4&&(<div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:48,marginBottom:12}}>😕</div><h3 style={{fontSize:20,fontWeight:800,marginBottom:10}}>Noch kein Lieferdienst für PLZ {plzSearch}</h3><p style={{color:P.textM,fontSize:14,marginBottom:20}}>Kennst du einen? Schlage ihn vor oder trage ihn selbst ein!</p><button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:P.text,color:"#FFF",borderRadius:100,padding:"12px 28px",fontSize:14,fontWeight:700}}>Lieferdienst eintragen</button></div>)}
-        </>):(<div style={{textAlign:"center",padding:"80px 20px"}}><div style={{fontSize:56,marginBottom:16}}>🍕</div><h3 style={{fontSize:22,fontWeight:900,marginBottom:8}}>Wo willst du bestellen?</h3><p style={{color:P.textM,fontSize:15,maxWidth:400,margin:"0 auto"}}>Gib oben deine PLZ ein und entdecke alle Lieferdienste in deiner Nähe.</p></div>)}
+        </>):null}
         </>):(
           /* DETAIL VIEW */
           (()=>{const op=isOpen(selRest.sched),z=plzSearch?findZone(selRest,plzSearch):null;return(<div style={{animation:"fadeUp 0.3s ease"}}><button className="btn2" onClick={()=>setSelRest(null)} style={{background:P.bg,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"8px 18px",fontSize:13,fontWeight:700,marginBottom:18,color:P.textM}}>← Zurück zur Übersicht</button>
