@@ -400,8 +400,7 @@ export default function App(){
                 {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Keine Bestellannahme</div>}
                 {isPrem&&<div style={{position:"absolute",top:10,right:10,background:P.accent,color:"#FFF",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:100}}>⭐ PRO</div>}
                 {r.dailySpecial&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(188,108,37,0.9)",color:"#FFF",fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:100}}>🔥 Tagesangebote</div>}
-                {/* Small logo overlay */}
-                {r.imageUrl&&<div style={{position:"absolute",bottom:10,left:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
+                {r.imageUrl&&<div style={{position:"absolute",bottom:10,right:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
               </div>
               {/* Info */}
               <div style={{padding:"14px 16px"}}>
@@ -412,6 +411,7 @@ export default function App(){
                   {z&&<span>🚗 {z.cost==="0€"?"Gratis Lieferung":z.cost+" Lieferung"}</span>}
                 </div>
                 {z&&z.cost==="0€"&&<div style={{marginTop:6}}><span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:100,background:"#E8F5E9",color:"#1B5E3B",border:"1px solid #A7D7A0"}}>🚗 Gratis Lieferung möglich</span></div>}
+                <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${P.border}`}}><span style={{fontSize:13,fontWeight:700,color:P.accent}}>Zur Speisekarte →</span></div>
               </div>
             </div>);};
 
