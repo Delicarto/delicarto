@@ -313,29 +313,29 @@ export default function App(){
       </nav>
 
       {/* HERO — full bleed dark */}
-      <div style={{position:"relative",overflow:"hidden",minHeight:"85vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{position:"relative",overflow:"hidden",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
         {/* Background food image */}
         <div style={{position:"absolute",inset:0,zIndex:0}}>
           <img src="https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/hero-food-dark.jpg" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
           <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.3) 85%, rgba(245,240,232,1) 100%)"}}/>
         </div>
-        <div style={{maxWidth:700,margin:"0 auto",padding:"120px 24px 60px",textAlign:"center",position:"relative",zIndex:2}}>
+        <div style={{maxWidth:600,margin:"0 auto",padding:"100px 20px 50px",textAlign:"center",position:"relative",zIndex:2}}>
           {/* Small banner */}
-          <div style={{marginBottom:24}}><span style={{background:"rgba(255,255,255,0.1)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:100,padding:"6px 18px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.9)",display:"inline-flex",alignItems:"center",gap:6}}><span style={{width:8,height:8,borderRadius:"50%",background:"#34D399",display:"inline-block"}}/>0% Provision — Direkt beim Lieferdienst bestellen</span></div>
-          <h1 style={{fontSize:"clamp(34px,6vw,56px)",fontWeight:900,lineHeight:1.05,marginBottom:18,letterSpacing:"-2px",color:"#FFF"}}>Speisekarte finden,<br/><span style={{color:"#34D399"}}>direkt bestellen.</span></h1>
-          <p style={{fontSize:17,color:"rgba(255,255,255,0.7)",lineHeight:1.6,maxWidth:480,margin:"0 auto 32px",fontWeight:400}}>Gib deine PLZ ein und finde sofort alle Lieferdienste in deiner Nähe — mit aktueller Speisekarte.</p>
+          <div style={{marginBottom:20}}><span style={{background:"rgba(255,255,255,0.1)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:100,padding:"6px 14px",fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.9)",display:"inline-flex",alignItems:"center",gap:6}}><span style={{width:7,height:7,borderRadius:"50%",background:"#34D399",display:"inline-block"}}/>0% Provision</span></div>
+          <h1 style={{fontSize:"clamp(28px,7vw,56px)",fontWeight:900,lineHeight:1.08,marginBottom:16,letterSpacing:"-1.5px",color:"#FFF"}}>Speisekarte finden,<br/><span style={{color:"#34D399"}}>direkt bestellen.</span></h1>
+          <p style={{fontSize:"clamp(14px,3.5vw,17px)",color:"rgba(255,255,255,0.7)",lineHeight:1.6,maxWidth:440,margin:"0 auto 28px",fontWeight:400}}>Gib deine PLZ ein und finde sofort alle Lieferdienste in deiner Nähe — mit aktueller Speisekarte.</p>
           {/* PLZ Search */}
-          <div style={{maxWidth:520,margin:"0 auto 16px",display:"flex",gap:0,background:"rgba(255,255,255,0.95)",borderRadius:100,overflow:"hidden",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
-            <div style={{display:"flex",alignItems:"center",paddingLeft:22}}><span style={{fontSize:18,color:P.textM}}>📍</span></div>
-            <input type="text" placeholder="Deine PLZ eingeben …" value={plzSearch} onChange={e=>setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5))} onKeyDown={e=>{if(e.key==="Enter"&&plzSearch.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{flex:1,padding:"18px 14px",fontSize:17,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",letterSpacing:"0.5px"}} maxLength={5}/>
-            <button className="btn" onClick={()=>{if(plzSearch.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{padding:"18px 32px",background:plzSearch.length>=4?"#2D6A4F":"#D5CCBB",color:plzSearch.length>=4?"#FFF":"#8B9E82",fontSize:15,fontWeight:700,whiteSpace:"nowrap",border:"none",borderRadius:100,margin:4,cursor:plzSearch.length>=4?"pointer":"default",transition:"background 0.3s"}}>
-              🔍 Suchen
+          <div style={{maxWidth:480,margin:"0 auto 14px",display:"flex",gap:0,background:"rgba(255,255,255,0.95)",borderRadius:100,overflow:"hidden",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
+            <div style={{display:"flex",alignItems:"center",paddingLeft:16}}><span style={{fontSize:16,color:P.textM}}>📍</span></div>
+            <input type="text" placeholder="Deine PLZ eingeben …" value={plzSearch} onChange={e=>setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5))} onKeyDown={e=>{if(e.key==="Enter"&&plzSearch.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{flex:1,padding:"16px 10px",fontSize:16,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",letterSpacing:"0.5px",minWidth:0}} maxLength={5}/>
+            <button className="btn" onClick={()=>{if(plzSearch.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{padding:"16px 24px",background:plzSearch.length>=4?"#2D6A4F":"#D5CCBB",color:plzSearch.length>=4?"#FFF":"#8B9E82",fontSize:14,fontWeight:700,whiteSpace:"nowrap",border:"none",borderRadius:100,margin:4,cursor:plzSearch.length>=4?"pointer":"default",transition:"background 0.3s"}}>
+              Suchen
             </button>
           </div>
-          <div style={{display:"flex",gap:20,justifyContent:"center",flexWrap:"wrap",fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.6)"}}>
+          <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.6)"}}>
             <span>✓ Kostenlos</span>
             <span>✓ Keine Registrierung</span>
-            <span>✓ Direkt beim Laden bestellen</span>
+            <span>✓ Direkt bestellen</span>
           </div>
         </div>
       </div>
@@ -510,19 +510,19 @@ export default function App(){
             <span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"2px"}}>So einfach geht's</span>
             <h2 style={{fontSize:32,fontWeight:900,marginTop:8,letterSpacing:"-0.5px"}}>In 3 Schritten zum Essen</h2>
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:32}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(250px, 1fr))",gap:20}}>
             {[
-              {img:"https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/step1.png",nr:"01",t:"PLZ eingeben",d:"Gib deine Postleitzahl ein und sieh sofort, welche Lieferdienste in deiner Nähe verfügbar sind — mit Öffnungszeiten, Liefergebieten und Kosten."},
-              {img:"https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/step2.png",nr:"02",t:"Speisekarte ansehen",d:"Öffne die aktuelle Speisekarte als PDF direkt im Browser. Zoome, blättere und finde dein Lieblingsgericht — übersichtlich und immer aktuell."},
-              {img:"https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/step3.png",nr:"03",t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei. Du bestellst direkt beim Lieferdienst — ohne Zwischenhändler, ohne Provision, ohne Aufpreis."}
-            ].map((s,i)=>(<div key={i} style={{display:"flex",gap:0,background:P.card,borderRadius:20,overflow:"hidden",border:`1.5px solid ${P.border}`,flexDirection:i%2===1?"row-reverse":"row",minHeight:220}}>
-              <div style={{flex:"0 0 40%",position:"relative",overflow:"hidden",minHeight:200}}>
-                <img src={s.img} alt={s.t} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} onError={e=>{e.target.parentElement.style.background=`${P.accent}15`;e.target.style.display="none";}}/>
-                <div style={{position:"absolute",top:16,left:i%2===1?"auto":16,right:i%2===1?16:"auto",width:36,height:36,borderRadius:12,background:P.accent,color:"#FFF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900}}>{s.nr}</div>
+              {img:"https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/step1.png",nr:"01",t:"PLZ eingeben",d:"Gib deine Postleitzahl ein — wir zeigen dir sofort, wer zu dir liefert."},
+              {img:"https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/step2.png",nr:"02",t:"Speisekarte ansehen",d:"Öffne die aktuelle Speisekarte als PDF — direkt im Browser, zum Zoomen und Blättern."},
+              {img:"https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/step3.png",nr:"03",t:"Direkt bestellen",d:"Ruf an, schreib per WhatsApp oder geh vorbei — du bestellst direkt beim Laden, ohne Provision."}
+            ].map((s,i)=>(<div key={i} style={{background:P.card,borderRadius:18,overflow:"hidden",border:`1.5px solid ${P.border}`}}>
+              <div style={{height:200,overflow:"hidden",position:"relative"}}>
+                <img src={s.img} alt={s.t} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                <div style={{position:"absolute",top:12,left:12,width:32,height:32,borderRadius:10,background:P.accent,color:"#FFF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900}}>{s.nr}</div>
               </div>
-              <div style={{flex:1,padding:"32px 28px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                <h3 style={{fontSize:22,fontWeight:900,marginBottom:10,color:P.text}}>{s.t}</h3>
-                <p style={{fontSize:15,color:P.textM,lineHeight:1.7}}>{s.d}</p>
+              <div style={{padding:"20px 18px"}}>
+                <h3 style={{fontSize:17,fontWeight:800,marginBottom:6}}>{s.t}</h3>
+                <p style={{fontSize:13,color:P.textM,lineHeight:1.6}}>{s.d}</p>
               </div>
             </div>))}
           </div>
