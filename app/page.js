@@ -357,18 +357,21 @@ export default function App(){
           {viewed.length>0&&!search&&selCat==="Alle"&&(<div style={{marginBottom:24}}><div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🕐 Zuletzt angesehen</div><div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:6}}>{viewed.map(r=>{const z=plzSearch?findZone(r,plzSearch):null;return(<div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:190,background:P.card,borderRadius:14,padding:"14px 16px",border:`1.5px solid ${P.border}`,cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div style={{width:32,height:32,borderRadius:10,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{CE[r.cats[0]]}</div><div style={{fontSize:14,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div></div><div style={{display:"flex",gap:4}}><span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:isOpen(r.sched)?"#E8FFF3":"#FFF0F3",color:isOpen(r.sched)?"#1B5E3B":"#C4314B"}}>{isOpen(r.sched)?"Geöffnet":"Geschlossen"}</span>{z&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>🚗 {z.cost}</span>}</div></div>);})}</div></div>)}
 
           {/* NEW ENTRIES SLIDER */}
-          {!search&&selCat==="Alle"&&viewed.length===0&&(()=>{const newest=[...rests].sort((a,b)=>(b.added||"").localeCompare(a.added||"")).slice(0,5);return newest.length>0?(<div style={{marginBottom:28}}>
+          {!search&&selCat==="Alle"&&viewed.length===0&&(()=>{const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70"};const newest=[...rests].sort((a,b)=>(b.added||"").localeCompare(a.added||"")).slice(0,5);return newest.length>0?(<div style={{marginBottom:28}}>
             <div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🆕 Neu auf DeliCarto</div>
             <div style={{display:"flex",gap:12,overflowX:"auto",paddingBottom:8,WebkitOverflowScrolling:"touch"}}>
-              {newest.map(r=>{const op=isOpen(r.sched),z=plzSearch?findZone(r,plzSearch):null;return(
-                <div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:220,background:P.card,borderRadius:16,overflow:"hidden",border:`1.5px solid ${P.border}`,cursor:"pointer",transition:"all 0.25s"}} className="card">
-                  <div style={{height:80,background:`linear-gradient(135deg, ${r.col}40, ${r.col}15)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>{CE[r.cats[0]]||"🍽️"}</div>
-                  <div style={{padding:"14px 16px"}}>
+              {newest.map(r=>{const op=isOpen(r.sched),z=plzSearch?findZone(r,plzSearch):null;const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";return(
+                <div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:240,background:P.card,borderRadius:16,overflow:"hidden",border:`1.5px solid ${P.border}`,cursor:"pointer"}} className="card">
+                  <div style={{height:120,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
+                    <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                    {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:10,fontWeight:700,padding:"4px"}}>Geschlossen</div>}
+                  </div>
+                  <div style={{padding:"12px 14px"}}>
                     <h4 style={{fontSize:15,fontWeight:800,marginBottom:4,lineHeight:1.2}}>{r.name}</h4>
-                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>{r.cats.slice(0,2).map(c=>(<span key={c} style={{fontSize:9,color:P.textM,fontWeight:700,background:"#E8F0E8",padding:"1px 6px",borderRadius:100,border:`1px solid ${P.border}`}}>{CE[c]} {c}</span>))}</div>
-                    <div style={{display:"flex",gap:4,alignItems:"center"}}>
-                      <span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:op?"#E8FFF3":"#FFF0F3",color:op?"#1B5E3B":"#C4314B"}}>{op?"Geöffnet":"Geschl."}</span>
-                      {z&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>{z.cost==="0€"?"Gratis":z.cost}</span>}
+                    <div style={{fontSize:11,color:P.textM,marginBottom:6}}>{r.cats.slice(0,3).join(", ")}</div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",fontSize:11,color:P.textM}}>
+                      <span>Min. {r.min}</span>
+                      {z&&<span>· 🚗 {z.cost==="0€"?"Gratis":z.cost}</span>}
                     </div>
                   </div>
                 </div>
