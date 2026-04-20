@@ -376,7 +376,7 @@ export default function App(){
           {!selRest&&<div style={{flex:1,maxWidth:400,position:"relative"}}>
             <div style={{display:"flex",background:"#FFF",borderRadius:100,overflow:"hidden",border:`1.5px solid ${P.border}`}}>
               <div style={{display:"flex",alignItems:"center",paddingLeft:14}}><span style={{fontSize:14,color:P.textM}}>📍</span></div>
-              <input type="text" placeholder="PLZ …" value={plzSearch} onChange={e=>{setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5));setSearching(false);}} onKeyDown={e=>{if(e.key==="Enter")doSearch();}} onFocus={()=>{if(plzSuggestions.length>0)setShowSugg(true);}} style={{flex:1,padding:"10px 8px",fontSize:14,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",minWidth:0}} maxLength={5}/>
+              <input type="text" placeholder="PLZ …" value={plzSearch} onChange={e=>{setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5));}} onKeyDown={e=>{if(e.key==="Enter")doSearch();}} onFocus={()=>{if(plzSuggestions.length>0)setShowSugg(true);}} style={{flex:1,padding:"10px 8px",fontSize:14,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",minWidth:0}} maxLength={5}/>
               {plzSearch&&<button onClick={()=>{setPlzSearch("");setSelRest(null);setSearching(false);}} style={{padding:"0 12px",background:"none",border:"none",fontSize:14,color:P.textM,cursor:"pointer"}}>✕</button>}
               <button className="btn" onClick={doSearch} style={{padding:"10px 18px",background:plzSearch.length>=4?P.accent:"#D5CCBB",color:plzSearch.length>=4?"#FFF":"#8B9E82",fontSize:13,fontWeight:700,border:"none",borderRadius:100,margin:3,cursor:plzSearch.length>=4?"pointer":"default"}}>Suchen</button>
             </div>
