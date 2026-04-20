@@ -49,6 +49,8 @@ const DATA=[
 
 function isOpen(s){if(!s||!Array.isArray(s))return false;const n=new Date(),d=s[DIM[n.getDay()]];if(!d||d.closed||!d.slots)return false;const m=n.getHours()*60+n.getMinutes();return d.slots.some(sl=>{const[oh,om]=sl.open.split(":").map(Number),[ch,cm]=sl.close.split(":").map(Number),o=oh*60+om,c=ch*60+cm;return c<=o?m>=o||m<=c:m>=o&&m<=c;});}
 function todayH(s){if(!s)return"—";const d=s[DIM[new Date().getDay()]];if(!d||d.closed||!d.slots||d.slots.length===0)return"Ruhetag";return d.slots.map(sl=>`${sl.open}–${sl.close}`).join(" + ");}
+function isDelivering(r){const ds=r.delivSched||r.sched;return isOpen(ds);}
+function delivTodayH(r){const ds=r.delivSched||r.sched;return todayH(ds);}
 function schedSum(s){if(!s)return"—";const g=[];let i=0;while(i<7){const c=s[i];let j=i+1;while(j<7){const n=s[j];if(c.closed&&n.closed){j++;continue;}if(!c.closed&&!n.closed&&c.slots&&n.slots&&JSON.stringify(c.slots)===JSON.stringify(n.slots)){j++;continue;}break;}const label=i===j-1?DAYS[i]:`${DAYS[i]}–${DAYS[j-1]}`;g.push(c.closed?{days:label,text:"Ruhetag",closed:true}:{days:label,text:c.slots.map(sl=>`${sl.open}–${sl.close}`).join(" + "),closed:false});i=j;}return g;}
 function getAddr(r){return `${r.street} ${r.nr}, ${r.plz} ${r.city}`;}
 function findZone(r,plz){if(!plz||!r.zones)return null;return r.zones.find(z=>z.plz===plz)||null;}
@@ -177,7 +179,7 @@ export default function App(){
       ...r,
       cats:r.categories||[],
       street:r.street||"",nr:r.house_nr||"",plz:r.plz||"",city:r.city||"",
-      sched:r.schedule||DS,min:r.min_order||"—",prem:r.is_premium,
+      sched:r.schedule||DS,delivSched:r.delivery_schedule||null,min:r.min_order||"—",prem:r.is_premium,
       col:r.color||"#2D6A4F",
       pdfUrl:r.pdf_url||null,pdfName:r.pdf_name||"Speisekarte.pdf",
       whatsapp:r.whatsapp||null,
@@ -406,13 +408,13 @@ export default function App(){
           </div>
 
           {/* Recently viewed */}
-          {viewed.length>0&&!search&&selCat==="Alle"&&(<div style={{marginBottom:24}}><div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🕐 Zuletzt angesehen</div><div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:6}}>{viewed.map(r=>{const z=plzSearch?findZone(r,plzSearch):null;return(<div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:190,background:P.card,borderRadius:14,padding:"14px 16px",border:`1.5px solid ${P.border}`,cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div style={{width:32,height:32,borderRadius:10,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{CE[r.cats[0]]}</div><div style={{fontSize:14,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div></div><div style={{display:"flex",gap:4}}><span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:isOpen(r.sched)?"#E8FFF3":"#FFF0F3",color:isOpen(r.sched)?"#1B5E3B":"#C4314B"}}>{isOpen(r.sched)?"Geöffnet":"Geschlossen"}</span>{z&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>🚗 {z.cost}</span>}</div></div>);})}</div></div>)}
+          {viewed.length>0&&!search&&selCat==="Alle"&&(<div style={{marginBottom:24}}><div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🕐 Zuletzt angesehen</div><div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:6}}>{viewed.map(r=>{const z=plzSearch?findZone(r,plzSearch):null;return(<div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:190,background:P.card,borderRadius:14,padding:"14px 16px",border:`1.5px solid ${P.border}`,cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div style={{width:32,height:32,borderRadius:10,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{CE[r.cats[0]]}</div><div style={{fontSize:14,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div></div><div style={{display:"flex",gap:4}}><span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:isDelivering(r)?"#E8FFF3":"#FFF0F3",color:isDelivering(r)?"#1B5E3B":"#C4314B"}}>{isDelivering(r)?"Lieferung möglich":"Keine Lieferung"}</span>{z&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>🚗 {z.cost}</span>}</div></div>);})}</div></div>)}
 
           {/* NEW ENTRIES SLIDER */}
           {!search&&selCat==="Alle"&&viewed.length===0&&(()=>{const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70"};const newest=[...rests].sort((a,b)=>(b.added||"").localeCompare(a.added||"")).slice(0,5);return newest.length>0?(<div style={{marginBottom:28}}>
             <div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🆕 Neu auf DeliCarto</div>
             <div style={{display:"flex",gap:12,overflowX:"auto",paddingBottom:8,WebkitOverflowScrolling:"touch"}}>
-              {newest.map(r=>{const op=isOpen(r.sched),z=plzSearch?findZone(r,plzSearch):null;const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";return(
+              {newest.map(r=>{const op=isDelivering(r),z=plzSearch?findZone(r,plzSearch):null;const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";return(
                 <div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:240,background:P.card,borderRadius:16,overflow:"hidden",border:`1.5px solid ${P.border}`,cursor:"pointer"}} className="card">
                   <div style={{height:120,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
                     <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
@@ -440,7 +442,7 @@ export default function App(){
           {/* PREMIUM SECTION — separate from regular results */}
           {(()=>{const premFiltered=filtered.filter(r=>r.prem);const regFiltered=filtered.filter(r=>!r.prem);
 
-          const RestCard=({r,i,isPrem})=>{const op=isOpen(r.sched),th=todayH(r.sched),z=plzSearch?findZone(r,plzSearch):null;
+          const RestCard=({r,i,isPrem})=>{const op=isDelivering(r),th=delivTodayH(r),z=plzSearch?findZone(r,plzSearch):null;
             // Default images per category
             const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Vietnamesisch":"https://images.unsplash.com/photo-1555126634-323283e090fa?w=400&q=70","Japanisch":"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&q=70","Indisch":"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=70","Griechisch":"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70","Chinesisch":"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=70","Mexikanisch":"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70"};
             const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";
@@ -449,7 +451,7 @@ export default function App(){
               {/* Image */}
               <div style={{height:160,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
                 <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Keine Bestellannahme</div>}
+                {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Aktuell keine Lieferung</div>}
                 {isPrem&&<div style={{position:"absolute",top:10,right:10,background:P.accent,color:"#FFF",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:100}}>⭐ PRO</div>}
                 {r.dailySpecial&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(188,108,37,0.9)",color:"#FFF",fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:100}}>🔥 Tagesangebote</div>}
                 {r.imageUrl&&<div style={{position:"absolute",bottom:10,right:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
@@ -493,7 +495,7 @@ export default function App(){
         </>):null}
         </>):(
           /* DETAIL VIEW */
-          (()=>{const op=isOpen(selRest.sched),z=plzSearch?findZone(selRest,plzSearch):null;
+          (()=>{const dlv=isDelivering(selRest),z=plzSearch?findZone(selRest,plzSearch):null;
             const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=800&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&q=70"};
             const heroImg=defImgs[selRest.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=70";
           return(<div style={{animation:"fadeUp 0.3s ease"}}>
@@ -513,7 +515,7 @@ export default function App(){
                 </div>
               </div>
               {/* Status badge */}
-              <div style={{position:"absolute",top:16,right:16}}><span style={{fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:100,background:op?"rgba(52,211,153,0.9)":"rgba(255,143,163,0.9)",color:"#FFF"}}>{op?"Geöffnet":"Geschlossen"}</span></div>
+              <div style={{position:"absolute",top:16,right:16}}><span style={{fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:100,background:dlv?"rgba(52,211,153,0.9)":"rgba(255,143,163,0.9)",color:"#FFF"}}>{dlv?"Lieferung möglich":"Aktuell keine Lieferung"}</span></div>
               {selRest.prem&&<div style={{position:"absolute",top:16,left:16,background:"rgba(45,106,79,0.9)",color:"#FFF",fontSize:11,fontWeight:800,padding:"4px 12px",borderRadius:100}}>⭐ Premium</div>}
             </div>
 
@@ -562,11 +564,17 @@ export default function App(){
               <div style={{fontSize:14,fontWeight:600,color:"#8B4513",whiteSpace:"pre-line",lineHeight:1.7}}>{selRest.dailySpecial}</div>
             </div>}
 
-            {/* Opening Hours */}
+            {/* Delivery Times */}
             <div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
-              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10}}>🕐 Öffnungszeiten</div>
-              <SchedShow schedule={selRest.sched}/>
+              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10}}>🚗 Lieferzeiten</div>
+              <SchedShow schedule={selRest.delivSched||selRest.sched}/>
             </div>
+
+            {/* Opening Hours - only show if different from delivery */}
+            {selRest.delivSched&&<div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
+              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10}}>🏪 Öffnungszeiten (Laden / Abholung)</div>
+              <SchedShow schedule={selRest.sched}/>
+            </div>}
 
             {/* PDF Viewer */}
             {selRest.pdfUrl?(<div style={{background:P.card,borderRadius:16,overflow:"hidden",marginBottom:24,border:`1.5px solid ${P.border}`}}>

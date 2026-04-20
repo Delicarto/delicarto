@@ -9,7 +9,7 @@ const mkDS=()=>DAYS.map(()=>({closed:false,slots:[{open:"11:00",close:"22:00"}]}
 const CATS=["Italienisch","Vietnamesisch","Türkisch","Japanisch","Indisch","Griechisch","Chinesisch","Mexikanisch","Deutsch","Vegan","Vegetarisch","Halal","Burger","Sonstiges"];
 const CE={"Italienisch":"🍕","Vietnamesisch":"🍜","Türkisch":"🥙","Japanisch":"🍣","Indisch":"🍛","Griechisch":"🥗","Chinesisch":"🥡","Mexikanisch":"🌮","Deutsch":"🥨","Vegan":"🌱","Vegetarisch":"🥬","Halal":"☪️","Burger":"🍔","Sonstiges":"🍽️"};
 const CC=["#2D6A4F","#40916C","#52796F","#588157","#D4A373","#BC6C25","#DDA15E","#E9C46A"];
-const mkEmpty=()=>({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",whatsapp:"",dailySpecial:"",min:"",sched:mkDS(),zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:"",pdfName:"",isPremium:false,imageFile:null,imageUrl:""});
+const mkEmpty=()=>({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",whatsapp:"",dailySpecial:"",min:"",sched:mkDS(),delivSched:null,useDelivSched:false,zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:"",pdfName:"",isPremium:false,imageFile:null,imageUrl:""});
 const lb={fontSize:11,fontWeight:700,color:"#6B7E6F",textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:6};
 const is={fontSize:14,fontWeight:500,border:"1.5px solid #D5CCBB",borderRadius:10,background:"#FFF",color:"#1B2A1D",padding:"12px 14px",width:"100%",fontFamily:"inherit"};
 
@@ -46,7 +46,7 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         const{data:{publicUrl}}=supabase.storage.from("menus").getPublicUrl(fn);
         pdfUrl=publicUrl;pdfName=f.file.name;
       }
-      const rd={name:f.name,categories:f.cats,street:f.street,house_nr:f.nr,plz:f.plz,city:f.city,phone:f.phone||null,whatsapp:f.whatsapp||null,daily_special:f.dailySpecial||null,image_url:imageUrl||null,schedule:f.sched,min_order:f.min||null,pdf_url:pdfUrl||null,pdf_name:pdfName||null,color:CC[Math.floor(Math.random()*CC.length)],is_premium:f.isPremium,owner_id:user.id};
+      const rd={name:f.name,categories:f.cats,street:f.street,house_nr:f.nr,plz:f.plz,city:f.city,phone:f.phone||null,whatsapp:f.whatsapp||null,daily_special:f.dailySpecial||null,image_url:imageUrl||null,schedule:f.sched,delivery_schedule:f.useDelivSched?f.delivSched:null,min_order:f.min||null,pdf_url:pdfUrl||null,pdf_name:pdfName||null,color:CC[Math.floor(Math.random()*CC.length)],is_premium:f.isPremium,owner_id:user.id};
       let rid=editId;
       if(editId){
         const{error}=await supabase.from("restaurants").update(rd).eq("id",editId);
@@ -90,7 +90,7 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
       </div>
 
       {/* Schedule */}
-      <div><label style={lb}>Öffnungszeiten</label>
+      <div><label style={lb}>Öffnungszeiten (Laden / Abholung)</label>
         <div style={{display:"flex",flexDirection:"column",gap:5}}>
           {DAYS.map((_,i)=>{const d=f.sched[i];return(<div key={i} style={{padding:"8px 12px",borderRadius:10,background:d.closed?"#FFF0F3":"#F5F0E8",border:`1px solid ${d.closed?"#FFD6E0":"#D5CCBB"}`}}>
             <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
@@ -110,6 +110,36 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
           </div>);})}
         </div>
       </div>
+
+      {/* Delivery schedule toggle */}
+      <div style={{display:"flex",alignItems:"center",gap:10}}>
+        <button onClick={()=>{upd("useDelivSched",!f.useDelivSched);if(!f.delivSched)upd("delivSched",mkDS());}} style={{width:48,height:26,borderRadius:13,background:f.useDelivSched?"#2D6A4F":"#DDD",border:"none",cursor:"pointer",position:"relative"}}>
+          <div style={{width:22,height:22,borderRadius:11,background:"#FFF",position:"absolute",top:2,left:f.useDelivSched?24:2,transition:"left 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.2)"}}/>
+        </button>
+        <span style={{fontSize:13,fontWeight:700,color:f.useDelivSched?"#2D6A4F":"#6B7E6F"}}>Abweichende Lieferzeiten</span>
+      </div>
+
+      {/* Delivery schedule editor */}
+      {f.useDelivSched&&<div><label style={lb}>Lieferzeiten</label>
+        <div style={{display:"flex",flexDirection:"column",gap:5}}>
+          {DAYS.map((_,i)=>{const d=(f.delivSched||mkDS())[i];return(<div key={`d${i}`} style={{padding:"8px 12px",borderRadius:10,background:d.closed?"#FFF0F3":"#E8F4FD",border:`1px solid ${d.closed?"#FFD6E0":"#93C5FD"}`}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+              <div style={{width:28,fontWeight:800,fontSize:12}}>{DAYS[i]}</div>
+              <button onClick={()=>{const s=[...(f.delivSched||mkDS())];s[i]={...s[i],closed:!s[i].closed,slots:s[i].closed?[{open:"17:00",close:"22:00"}]:s[i].slots};upd("delivSched",s);}} style={{padding:"3px 10px",borderRadius:8,fontSize:10,fontWeight:700,cursor:"pointer",border:"none",background:d.closed?"#FF8FA3":"#1D6FA5",color:"#FFF"}}>{d.closed?"Keine Lieferung":"Lieferung"}</button>
+              {!d.closed&&<button onClick={()=>{const src=(f.delivSched||mkDS())[i];upd("delivSched",(f.delivSched||mkDS()).map(()=>({closed:src.closed,slots:src.slots.map(s=>({...s}))})));}} style={{marginLeft:"auto",padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:700,cursor:"pointer",border:"1px solid #D5CCBB",background:"#FFF",color:"#6B7E6F"}}>📋 Alle</button>}
+            </div>
+            {!d.closed&&<div style={{marginTop:6,display:"flex",flexDirection:"column",gap:4}}>
+              {d.slots.map((sl,si)=>(<div key={si} style={{display:"flex",alignItems:"center",gap:6}}>
+                <select value={sl.open} onChange={e=>{const s=[...(f.delivSched||mkDS())];s[i]={...s[i],slots:s[i].slots.map((x,k)=>k===si?{...x,open:e.target.value}:x)};upd("delivSched",s);}} style={{padding:"3px 6px",borderRadius:6,border:"1px solid #93C5FD",fontSize:12,background:"#FFF"}}>{TIMES.map(t=><option key={t} value={t}>{t}</option>)}</select>
+                <span style={{fontSize:12,color:"#6B7E6F"}}>–</span>
+                <select value={sl.close} onChange={e=>{const s=[...(f.delivSched||mkDS())];s[i]={...s[i],slots:s[i].slots.map((x,k)=>k===si?{...x,close:e.target.value}:x)};upd("delivSched",s);}} style={{padding:"3px 6px",borderRadius:6,border:"1px solid #93C5FD",fontSize:12,background:"#FFF"}}>{TIMES.map(t=><option key={t} value={t}>{t}</option>)}</select>
+                {d.slots.length>1&&<button onClick={()=>{const s=[...(f.delivSched||mkDS())];s[i]={...s[i],slots:s[i].slots.filter((_,k)=>k!==si)};upd("delivSched",s);}} style={{width:22,height:22,borderRadius:6,border:"none",background:"#FFF0F3",color:"#FF8FA3",fontSize:11,cursor:"pointer"}}>✕</button>}
+              </div>))}
+              {d.slots.length<3&&<button onClick={()=>{const s=[...(f.delivSched||mkDS())];s[i]={...s[i],slots:[...s[i].slots,{open:"17:00",close:"22:00"}]};upd("delivSched",s);}} style={{padding:"3px 10px",borderRadius:6,border:"1px dashed #93C5FD",background:"transparent",color:"#1D6FA5",fontSize:10,fontWeight:700,cursor:"pointer",alignSelf:"flex-start"}}>+ Zeitspanne</button>}
+            </div>}
+          </div>);})}
+        </div>
+      </div>}
 
       {/* Logo/Bild */}
       <div><label style={lb}>Logo oder Foto (optional)</label>
@@ -170,7 +200,7 @@ export default function AdminPage(){
 
   const startEdit=(r)=>{
     const rz=(zones||[]).filter(z=>z.restaurant_id===r.id).map(z=>({name:z.zone_name,plz:z.plz,cost:z.delivery_cost,minOrder:z.min_order||""}));
-    setEditInit({name:r.name,cats:r.categories||[],street:r.street||"",nr:r.house_nr||"",plz:r.plz||"",city:r.city||"",phone:r.phone||"",whatsapp:r.whatsapp||"",dailySpecial:r.daily_special||"",min:r.min_order||"",sched:r.schedule||mkDS(),zones:rz.length>0?rz:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:r.pdf_url||"",pdfName:r.pdf_name||"",isPremium:r.is_premium||false,imageFile:null,imageUrl:r.image_url||""});
+    setEditInit({name:r.name,cats:r.categories||[],street:r.street||"",nr:r.house_nr||"",plz:r.plz||"",city:r.city||"",phone:r.phone||"",whatsapp:r.whatsapp||"",dailySpecial:r.daily_special||"",min:r.min_order||"",sched:r.schedule||mkDS(),delivSched:r.delivery_schedule||mkDS(),useDelivSched:!!r.delivery_schedule,zones:rz.length>0?rz:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:r.pdf_url||"",pdfName:r.pdf_name||"",isPremium:r.is_premium||false,imageFile:null,imageUrl:r.image_url||""});
     setEditId(r.id);setTab("edit");setMsg("");
   };
   const handleSaved=(m)=>{loadAll();setMsg(m);setTab("list");setEditId(null);setEditInit(null);};
