@@ -133,7 +133,7 @@ export default function App(){
     if(plzSearch.length>=3&&plzSearch.length<5){
       const t=setTimeout(async()=>{
         try{
-          const res=await fetch(`https://openplzapi.org/de/Localities?postalCode=^${plzSearch}&page=0&pageSize=6`);
+          const res=await fetch(`https://openplzapi.org/de/Localities?postalCode=^${plzSearch}&page=1&pageSize=6`);
           const data=await res.json();
           const unique=[];const seen=new Set();
           data.forEach(d=>{const k=d.postalCode;if(!seen.has(k)){seen.add(k);unique.push({plz:d.postalCode,name:d.name});}});
