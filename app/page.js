@@ -120,10 +120,30 @@ export default function App(){
   const[openFaq,setOpenFaq]=useState(null);
   const[mMenu,setMMenu]=useState(false);
   const[cookieOk,setCookieOk]=useState(false);
+  const[plzSuggestions,setPlzSuggestions]=useState([]);
+  const[showSugg,setShowSugg]=useState(false);
 
   // Check cookie consent on mount
   useEffect(()=>{if(typeof window!=="undefined"&&localStorage.getItem("dc_cookies")==="ok")setCookieOk(true);},[]);
   const acceptCookies=()=>{setCookieOk(true);if(typeof window!=="undefined")localStorage.setItem("dc_cookies","ok");};
+
+  // PLZ autocomplete
+  useEffect(()=>{
+    if(plzSearch.length>=3&&plzSearch.length<5){
+      const t=setTimeout(async()=>{
+        try{
+          const res=await fetch(`https://openplzapi.org/de/Localities?postalCode=^${plzSearch}&page=0&pageSize=6`);
+          const data=await res.json();
+          const unique=[];const seen=new Set();
+          data.forEach(d=>{const k=d.postalCode;if(!seen.has(k)){seen.add(k);unique.push({plz:d.postalCode,name:d.name});}});
+          setPlzSuggestions(unique);setShowSugg(unique.length>0);
+        }catch(e){setPlzSuggestions([]);setShowSugg(false);}
+      },300);
+      return()=>clearTimeout(t);
+    }else{setPlzSuggestions([]);setShowSugg(false);}
+  },[plzSearch]);
+
+  const selectPlz=(plz)=>{setPlzSearch(plz);setShowSugg(false);setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);};
 
   // Register state
   const[rStep,setRStep]=useState(1);
@@ -323,12 +343,21 @@ export default function App(){
           <div style={{marginBottom:20}}><span style={{background:"rgba(255,255,255,0.1)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:100,padding:"6px 14px",fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.9)",display:"inline-flex",alignItems:"center",gap:6}}><span style={{width:7,height:7,borderRadius:"50%",background:"#34D399",display:"inline-block"}}/>0% Provision</span></div>
           <h1 style={{fontSize:"clamp(36px,9vw,56px)",fontWeight:900,lineHeight:1.08,marginBottom:16,letterSpacing:"-1.5px",color:"#FFF"}}>Speisekarte finden,<br/><span style={{color:"#34D399"}}>direkt bestellen.</span></h1>
           <p style={{fontSize:"clamp(15px,4vw,17px)",color:"rgba(255,255,255,0.7)",lineHeight:1.6,maxWidth:440,margin:"0 auto 28px",fontWeight:400}}>Gib deine PLZ ein und finde sofort alle Lieferdienste in deiner Nähe — mit aktueller Speisekarte.</p>
-          <div style={{maxWidth:480,margin:"0 auto 14px",display:"flex",gap:0,background:"rgba(255,255,255,0.95)",borderRadius:100,overflow:"hidden",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
-            <div style={{display:"flex",alignItems:"center",paddingLeft:16}}><span style={{fontSize:16,color:P.textM}}>📍</span></div>
-            <input type="text" placeholder="Deine PLZ eingeben …" value={plzSearch} onChange={e=>setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5))} onKeyDown={e=>{if(e.key==="Enter"&&plzSearch.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{flex:1,padding:"16px 10px",fontSize:16,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",letterSpacing:"0.5px",minWidth:0}} maxLength={5}/>
-            <button className="btn" onClick={()=>{if(plzSearch.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{padding:"16px 24px",background:plzSearch.length>=4?"#2D6A4F":"#D5CCBB",color:plzSearch.length>=4?"#FFF":"#8B9E82",fontSize:14,fontWeight:700,whiteSpace:"nowrap",border:"none",borderRadius:100,margin:4,cursor:plzSearch.length>=4?"pointer":"default",transition:"background 0.3s"}}>
-              Suchen
-            </button>
+          <div style={{maxWidth:480,margin:"0 auto 14px",position:"relative"}}>
+            <div style={{display:"flex",gap:0,background:"rgba(255,255,255,0.95)",borderRadius:100,overflow:"hidden",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
+              <div style={{display:"flex",alignItems:"center",paddingLeft:16}}><span style={{fontSize:16,color:P.textM}}>📍</span></div>
+              <input type="text" placeholder="Deine PLZ eingeben …" value={plzSearch} onChange={e=>{setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5));}} onKeyDown={e=>{if(e.key==="Enter"&&plzSearch.length>=4){setShowSugg(false);appRef.current?.scrollIntoView({behavior:"smooth"});}}} onFocus={()=>{if(plzSuggestions.length>0)setShowSugg(true);}} style={{flex:1,padding:"16px 10px",fontSize:16,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",letterSpacing:"0.5px",minWidth:0}} maxLength={5}/>
+              <button className="btn" onClick={()=>{if(plzSearch.length>=4){setShowSugg(false);appRef.current?.scrollIntoView({behavior:"smooth"});}}} style={{padding:"16px 24px",background:plzSearch.length>=4?"#2D6A4F":"#D5CCBB",color:plzSearch.length>=4?"#FFF":"#8B9E82",fontSize:14,fontWeight:700,whiteSpace:"nowrap",border:"none",borderRadius:100,margin:4,cursor:plzSearch.length>=4?"pointer":"default",transition:"background 0.3s"}}>
+                Suchen
+              </button>
+            </div>
+            {/* PLZ Suggestions Dropdown */}
+            {showSugg&&plzSuggestions.length>0&&<div style={{position:"absolute",top:"100%",left:0,right:0,marginTop:6,background:"#FFF",borderRadius:16,boxShadow:"0 12px 40px rgba(0,0,0,0.25)",overflow:"hidden",zIndex:10}}>
+              {plzSuggestions.map((s,i)=>(<div key={i} onClick={()=>selectPlz(s.plz)} style={{padding:"14px 20px",display:"flex",alignItems:"center",gap:10,cursor:"pointer",borderBottom:i<plzSuggestions.length-1?"1px solid #F0EBE0":"none",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background="#F8F6F2"} onMouseLeave={e=>e.currentTarget.style.background="#FFF"}>
+                <span style={{color:P.accent,fontSize:16}}>📍</span>
+                <div><span style={{fontWeight:700,fontSize:14}}>{s.plz}</span> <span style={{color:P.textM,fontSize:14}}>{s.name}</span></div>
+              </div>))}
+            </div>}
           </div>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.6)"}}>
             <span>✓ Kostenlos</span>
@@ -541,6 +570,9 @@ export default function App(){
         )}
       </div>
 
+      {/* Only show these sections on the landing page */}
+      {plzSearch.length<4&&!selRest&&(<>
+
       {/* SO FUNKTIONIERT'S */}
       <Reveal id="how" style={{padding:"80px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
         <div style={{maxWidth:1000,margin:"0 auto"}}>
@@ -614,6 +646,8 @@ export default function App(){
           </div>
         </div>
       </footer>
+
+      </>)}
 
       {/* COOKIE BANNER */}
       {!cookieOk&&<div style={{position:"fixed",bottom:0,left:0,right:0,background:"#1B2A1D",color:"#FFF",padding:"16px 24px",zIndex:9999,boxShadow:"0 -4px 20px rgba(0,0,0,0.15)"}}>
