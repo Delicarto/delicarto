@@ -298,33 +298,31 @@ export default function App(){
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}@keyframes scaleIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .card{transition:all 0.25s ease;cursor:pointer;border:1.5px solid ${P.border}}.card:hover{border-color:#B8C9B0;box-shadow:0 12px 40px rgba(27,42,29,0.06);transform:translateY(-4px)}.pill{transition:all 0.15s ease;cursor:pointer;white-space:nowrap}.pill:hover{opacity:0.85}.btn{transition:all 0.2s ease;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px}.btn:hover{transform:translateY(-1px)}.btn:active{transform:scale(0.98)}.btn2{transition:all 0.2s ease;cursor:pointer;font-family:inherit}.btn2:hover{background:#F0EBE0}.clift{transition:all 0.25s ease}.clift:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(27,42,29,0.06)}input:focus,select:focus{outline:none;border-color:${P.accent};box-shadow:0 0 0 3px rgba(45,106,79,0.15)}::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#C4B9A5;border-radius:3px}@media(max-width:768px){.nav-links{display:none!important}.mmb{display:flex!important}}`}</style>
 
-      {/* NAV — transparent over hero */}
-      <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,background:"rgba(0,0,0,0.15)",backdropFilter:"blur(12px)"}}>
+      {/* NAV */}
+      <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,background:plzSearch.length>=4||selRest?"rgba(245,240,232,0.95)":"rgba(0,0,0,0.15)",backdropFilter:"blur(12px)",borderBottom:plzSearch.length>=4||selRest?`1px solid ${P.border}`:"none"}}>
         <div style={{maxWidth:1100,margin:"0 auto",padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{cursor:"pointer"}} onClick={()=>{setSelRest(null);setPlzSearch("");setSearch("");window.scrollTo({top:0,behavior:"smooth"});}}><Logo h={26} light={true}/></div>
+          <div style={{cursor:"pointer"}} onClick={()=>{setSelRest(null);setPlzSearch("");setSearch("");window.scrollTo({top:0,behavior:"smooth"});}}><Logo h={26} light={plzSearch.length<4&&!selRest}/></div>
           <div className="nav-links" style={{display:"flex",gap:24,alignItems:"center"}}>
-            <a href="#how" style={{color:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:14,fontWeight:600}}>So funktioniert's</a>
-            <a href="#faq" style={{color:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:14,fontWeight:600}}>FAQ</a>
-            <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"transparent",color:"#FFF",borderRadius:100,padding:"10px 22px",fontSize:13,fontWeight:700,border:"1.5px solid rgba(255,255,255,0.4)"}}>+ Lieferdienst eintragen</button>
+            <a href="#how" style={{color:plzSearch.length>=4||selRest?P.textM:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:14,fontWeight:600}}>So funktioniert's</a>
+            <a href="#faq" style={{color:plzSearch.length>=4||selRest?P.textM:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:14,fontWeight:600}}>FAQ</a>
+            <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:plzSearch.length>=4||selRest?P.accent:"transparent",color:"#FFF",borderRadius:100,padding:"10px 22px",fontSize:13,fontWeight:700,border:plzSearch.length>=4||selRest?"none":"1.5px solid rgba(255,255,255,0.4)"}}>+ Lieferdienst eintragen</button>
           </div>
-          <button className="mmb" onClick={()=>setMMenu(!mMenu)} style={{display:"none",background:"none",border:"none",color:"#FFF",fontSize:24,cursor:"pointer"}}>☰</button>
+          <button className="mmb" onClick={()=>setMMenu(!mMenu)} style={{display:"none",background:"none",border:"none",color:plzSearch.length>=4||selRest?P.text:"#FFF",fontSize:24,cursor:"pointer"}}>☰</button>
         </div>
-        {mMenu&&<div style={{padding:"8px 24px 20px",borderTop:"1px solid rgba(255,255,255,0.1)"}}><a href="#how" onClick={()=>setMMenu(false)} style={{display:"block",color:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:15,fontWeight:600,padding:"8px 0"}}>So funktioniert's</a><a href="#faq" onClick={()=>setMMenu(false)} style={{display:"block",color:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:15,fontWeight:600,padding:"8px 0"}}>FAQ</a><button className="btn" onClick={()=>{setMMenu(false);setPage("register");resetR();}} style={{background:"transparent",color:"#FFF",borderRadius:100,padding:"12px",width:"100%",marginTop:8,fontSize:14,fontWeight:700,border:"1.5px solid rgba(255,255,255,0.4)"}}>+ Lieferdienst eintragen</button></div>}
+        {mMenu&&<div style={{padding:"8px 24px 20px",borderTop:`1px solid ${plzSearch.length>=4||selRest?P.border:"rgba(255,255,255,0.1)"}`}}><a href="#how" onClick={()=>setMMenu(false)} style={{display:"block",color:plzSearch.length>=4||selRest?P.textM:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:15,fontWeight:600,padding:"8px 0"}}>So funktioniert's</a><a href="#faq" onClick={()=>setMMenu(false)} style={{display:"block",color:plzSearch.length>=4||selRest?P.textM:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:15,fontWeight:600,padding:"8px 0"}}>FAQ</a><button className="btn" onClick={()=>{setMMenu(false);setPage("register");resetR();}} style={{background:plzSearch.length>=4||selRest?P.accent:"transparent",color:"#FFF",borderRadius:100,padding:"12px",width:"100%",marginTop:8,fontSize:14,fontWeight:700,border:plzSearch.length>=4||selRest?"none":"1.5px solid rgba(255,255,255,0.4)"}}>+ Lieferdienst eintragen</button></div>}
       </nav>
 
-      {/* HERO — full bleed dark */}
+      {/* HERO — big when no search, small bar when searching */}
+      {plzSearch.length<4&&!selRest?(
       <div style={{position:"relative",overflow:"hidden",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-        {/* Background food image */}
         <div style={{position:"absolute",inset:0,zIndex:0}}>
           <img src="https://impphknjgbxcycwqeanc.supabase.co/storage/v1/object/public/menus/hero-food-dark.jpg" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
           <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.3) 85%, rgba(245,240,232,1) 100%)"}}/>
         </div>
         <div style={{maxWidth:600,margin:"0 auto",padding:"100px 20px 50px",textAlign:"center",position:"relative",zIndex:2}}>
-          {/* Small banner */}
           <div style={{marginBottom:20}}><span style={{background:"rgba(255,255,255,0.1)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:100,padding:"6px 14px",fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.9)",display:"inline-flex",alignItems:"center",gap:6}}><span style={{width:7,height:7,borderRadius:"50%",background:"#34D399",display:"inline-block"}}/>0% Provision</span></div>
           <h1 style={{fontSize:"clamp(36px,9vw,56px)",fontWeight:900,lineHeight:1.08,marginBottom:16,letterSpacing:"-1.5px",color:"#FFF"}}>Speisekarte finden,<br/><span style={{color:"#34D399"}}>direkt bestellen.</span></h1>
           <p style={{fontSize:"clamp(15px,4vw,17px)",color:"rgba(255,255,255,0.7)",lineHeight:1.6,maxWidth:440,margin:"0 auto 28px",fontWeight:400}}>Gib deine PLZ ein und finde sofort alle Lieferdienste in deiner Nähe — mit aktueller Speisekarte.</p>
-          {/* PLZ Search */}
           <div style={{maxWidth:480,margin:"0 auto 14px",display:"flex",gap:0,background:"rgba(255,255,255,0.95)",borderRadius:100,overflow:"hidden",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
             <div style={{display:"flex",alignItems:"center",paddingLeft:16}}><span style={{fontSize:16,color:P.textM}}>📍</span></div>
             <input type="text" placeholder="Deine PLZ eingeben …" value={plzSearch} onChange={e=>setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5))} onKeyDown={e=>{if(e.key==="Enter"&&plzSearch.length>=4)appRef.current?.scrollIntoView({behavior:"smooth"});}} style={{flex:1,padding:"16px 10px",fontSize:16,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",letterSpacing:"0.5px",minWidth:0}} maxLength={5}/>
@@ -339,6 +337,20 @@ export default function App(){
           </div>
         </div>
       </div>
+      ):(
+      /* Small search bar when results or detail */
+      <div style={{paddingTop:70,background:P.heroBg,borderBottom:`1px solid ${P.border}`}}>
+        <div style={{maxWidth:1100,margin:"0 auto",padding:"16px 24px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+          {selRest&&<button className="btn2" onClick={()=>setSelRest(null)} style={{background:"transparent",border:`1.5px solid ${P.border}`,borderRadius:100,padding:"8px 16px",fontSize:13,fontWeight:700,color:P.textM}}>← Zurück</button>}
+          {!selRest&&<div style={{flex:1,maxWidth:400,display:"flex",background:"#FFF",borderRadius:100,overflow:"hidden",border:`1.5px solid ${P.border}`}}>
+            <div style={{display:"flex",alignItems:"center",paddingLeft:14}}><span style={{fontSize:14,color:P.textM}}>📍</span></div>
+            <input type="text" placeholder="PLZ …" value={plzSearch} onChange={e=>setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5))} style={{flex:1,padding:"10px 8px",fontSize:14,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",minWidth:0}} maxLength={5}/>
+            {plzSearch&&<button onClick={()=>{setPlzSearch("");setSelRest(null);}} style={{padding:"0 12px",background:"none",border:"none",fontSize:14,color:P.textM,cursor:"pointer"}}>✕</button>}
+          </div>}
+          {!selRest&&plzSearch.length>=4&&<span style={{fontSize:13,color:P.textM,fontWeight:600}}>{filtered.length} Ergebnis{filtered.length!==1?"se":""} für PLZ {plzSearch}</span>}
+        </div>
+      </div>
+      )}
 
       {/* RESULTS */}
       <div ref={appRef} id="app" style={{maxWidth:1100,margin:"0 auto",padding:"24px 24px 60px"}}>
@@ -445,7 +457,6 @@ export default function App(){
             const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=800&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&q=70"};
             const heroImg=defImgs[selRest.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=70";
           return(<div style={{animation:"fadeUp 0.3s ease"}}>
-            <button className="btn2" onClick={()=>setSelRest(null)} style={{background:"rgba(0,0,0,0.05)",border:"none",borderRadius:100,padding:"8px 18px",fontSize:13,fontWeight:700,marginBottom:18,color:P.textM}}>← Zurück</button>
 
             {/* Hero Image */}
             <div style={{borderRadius:20,overflow:"hidden",marginBottom:24,position:"relative",height:220,background:"#E8E0D4"}}>
