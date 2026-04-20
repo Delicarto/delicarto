@@ -373,12 +373,21 @@ export default function App(){
       <div style={{paddingTop:70,background:P.heroBg,borderBottom:`1px solid ${P.border}`}}>
         <div style={{maxWidth:1100,margin:"0 auto",padding:"16px 24px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
           {selRest&&<button className="btn2" onClick={()=>setSelRest(null)} style={{background:"transparent",border:`1.5px solid ${P.border}`,borderRadius:100,padding:"8px 16px",fontSize:13,fontWeight:700,color:P.textM}}>← Zurück</button>}
-          {!selRest&&<div style={{flex:1,maxWidth:400,display:"flex",background:"#FFF",borderRadius:100,overflow:"hidden",border:`1.5px solid ${P.border}`}}>
-            <div style={{display:"flex",alignItems:"center",paddingLeft:14}}><span style={{fontSize:14,color:P.textM}}>📍</span></div>
-            <input type="text" placeholder="PLZ …" value={plzSearch} onChange={e=>setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5))} style={{flex:1,padding:"10px 8px",fontSize:14,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",minWidth:0}} maxLength={5}/>
-            {plzSearch&&<button onClick={()=>{setPlzSearch("");setSelRest(null);setSearching(false);}} style={{padding:"0 12px",background:"none",border:"none",fontSize:14,color:P.textM,cursor:"pointer"}}>✕</button>}
+          {!selRest&&<div style={{flex:1,maxWidth:400,position:"relative"}}>
+            <div style={{display:"flex",background:"#FFF",borderRadius:100,overflow:"hidden",border:`1.5px solid ${P.border}`}}>
+              <div style={{display:"flex",alignItems:"center",paddingLeft:14}}><span style={{fontSize:14,color:P.textM}}>📍</span></div>
+              <input type="text" placeholder="PLZ …" value={plzSearch} onChange={e=>{setPlzSearch(e.target.value.replace(/\D/g,"").slice(0,5));setSearching(false);}} onKeyDown={e=>{if(e.key==="Enter")doSearch();}} onFocus={()=>{if(plzSuggestions.length>0)setShowSugg(true);}} style={{flex:1,padding:"10px 8px",fontSize:14,fontWeight:500,border:"none",background:"transparent",color:P.text,outline:"none",minWidth:0}} maxLength={5}/>
+              {plzSearch&&<button onClick={()=>{setPlzSearch("");setSelRest(null);setSearching(false);}} style={{padding:"0 12px",background:"none",border:"none",fontSize:14,color:P.textM,cursor:"pointer"}}>✕</button>}
+              <button className="btn" onClick={doSearch} style={{padding:"10px 18px",background:plzSearch.length>=4?P.accent:"#D5CCBB",color:plzSearch.length>=4?"#FFF":"#8B9E82",fontSize:13,fontWeight:700,border:"none",borderRadius:100,margin:3,cursor:plzSearch.length>=4?"pointer":"default"}}>Suchen</button>
+            </div>
+            {showSugg&&plzSuggestions.length>0&&<div style={{position:"absolute",top:"100%",left:0,right:0,marginTop:4,background:"#FFF",borderRadius:14,boxShadow:"0 8px 24px rgba(0,0,0,0.12)",overflow:"hidden",zIndex:10,border:`1px solid ${P.border}`}}>
+              {plzSuggestions.map((s,i)=>(<div key={i} onClick={()=>selectPlz(s.plz)} style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:8,cursor:"pointer",borderBottom:i<plzSuggestions.length-1?`1px solid #F0EBE0`:"none"}} onMouseEnter={e=>e.currentTarget.style.background="#F8F6F2"} onMouseLeave={e=>e.currentTarget.style.background="#FFF"}>
+                <span style={{color:P.accent,fontSize:14}}>📍</span>
+                <span style={{fontWeight:700,fontSize:13}}>{s.plz}</span> <span style={{color:P.textM,fontSize:13}}>{s.name}</span>
+              </div>))}
+            </div>}
           </div>}
-          {!selRest&&plzSearch.length>=4&&<span style={{fontSize:13,color:P.textM,fontWeight:600}}>{filtered.length} Ergebnis{filtered.length!==1?"se":""} für PLZ {plzSearch}</span>}
+          {!selRest&&searching&&<span style={{fontSize:13,color:P.textM,fontWeight:600}}>{filtered.length} Ergebnis{filtered.length!==1?"se":""} für PLZ {plzSearch}</span>}
         </div>
       </div>
       )}
