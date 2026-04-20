@@ -251,7 +251,7 @@ export default function App(){
 
   // Filter: by PLZ (delivery zone), by text search, by category
   const filtered=(()=>{let l=[...rests];
-    if(plzSearch.length>=4){l=l.filter(r=>r.zones.some(z=>z.plz.startsWith(plzSearch)));}
+    if(searching&&plzSearch.length>=4){l=l.filter(r=>r.zones.some(z=>z.plz.startsWith(plzSearch)));}
     l=l.filter(r=>{const cs=r.cats.join(" ").toLowerCase();const m=r.name.toLowerCase().includes(search.toLowerCase())||cs.includes(search.toLowerCase());return m&&(selCat==="Alle"||r.cats.includes(selCat));});
     return l;
   })();
@@ -395,7 +395,7 @@ export default function App(){
       {/* RESULTS */}
       <div ref={appRef} id="app" style={{maxWidth:1100,margin:"0 auto",padding:"24px 24px 60px"}}>
         {!selRest?(<>
-          {plzSearch.length>=4?(<>
+          {searching&&plzSearch.length>=4?(<>
           {/* Text search */}
           <div style={{marginBottom:16}}><input type="text" placeholder="🔍 Zusätzlich nach Name oder Küche filtern…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:"100%",maxWidth:400,padding:"12px 16px",fontSize:14,fontWeight:500,border:`1.5px solid ${P.border}`,borderRadius:100,background:"#FFF",color:P.text}}/></div>
 
