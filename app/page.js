@@ -452,19 +452,22 @@ export default function App(){
               <div style={{height:160,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
                 <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
                 {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Aktuell keine Lieferung</div>}
-                {isPrem&&<div style={{position:"absolute",top:10,right:10,background:P.accent,color:"#FFF",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:100}}>⭐ PRO</div>}
                 {r.dailySpecial&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(188,108,37,0.9)",color:"#FFF",fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:100}}>🔥 Tagesangebote</div>}
                 {r.imageUrl&&<div style={{position:"absolute",bottom:10,right:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
               </div>
               {/* Info */}
               <div style={{padding:"14px 16px"}}>
-                <h3 style={{fontSize:16,fontWeight:800,marginBottom:4,lineHeight:1.2}}>{r.name}</h3>
-                <div style={{fontSize:12,color:P.textM,marginBottom:8}}>{r.cats.join(", ")}</div>
-                <div style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:P.textM}}>
-                  <span>🛒 Min. {r.min}</span>
-                  {z&&<span>🚗 {z.cost==="0€"?"Gratis Lieferung":z.cost+" Lieferung"}</span>}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"start",marginBottom:4}}>
+                  <h3 style={{fontSize:16,fontWeight:800,lineHeight:1.2}}>{r.name}</h3>
+                  {isPrem&&<span style={{fontSize:9,fontWeight:800,background:P.accent,color:"#FFF",padding:"2px 8px",borderRadius:100,flexShrink:0,marginLeft:8}}>PRO</span>}
                 </div>
-                {z&&z.cost==="0€"&&<div style={{marginTop:6}}><span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:100,background:"#E8F5E9",color:"#1B5E3B",border:"1px solid #A7D7A0"}}>🚗 Gratis Lieferung möglich</span></div>}
+                <div style={{fontSize:12,color:P.textM,marginBottom:6}}>{r.cats.join(", ")}</div>
+                <div style={{fontSize:12,color:P.textM,marginBottom:6}}>Lieferung heute: {th}</div>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:P.textM}}>
+                  <span>Min. {r.min}</span>
+                  {z&&<span>· {z.cost==="0€"?"Gratis Lieferung":z.cost+" Lieferung"}</span>}
+                </div>
+                {z&&z.cost==="0€"&&<div style={{marginTop:6}}><span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:100,background:"#E8F5E9",color:"#1B5E3B",border:"1px solid #A7D7A0"}}>Gratis Lieferung möglich</span></div>}
                 <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${P.border}`}}><span style={{fontSize:13,fontWeight:700,color:P.accent}}>Zur Speisekarte →</span></div>
               </div>
             </div>);};
