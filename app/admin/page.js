@@ -9,7 +9,7 @@ const mkDS=()=>DAYS.map(()=>({closed:false,slots:[{open:"11:00",close:"22:00"}]}
 const CATS=["Italienisch","Vietnamesisch","Türkisch","Japanisch","Indisch","Griechisch","Chinesisch","Mexikanisch","Deutsch","Vegan","Vegetarisch","Halal","Burger","Sonstiges"];
 const CE={"Italienisch":"🍕","Vietnamesisch":"🍜","Türkisch":"🥙","Japanisch":"🍣","Indisch":"🍛","Griechisch":"🥗","Chinesisch":"🥡","Mexikanisch":"🌮","Deutsch":"🥨","Vegan":"🌱","Vegetarisch":"🥬","Halal":"☪️","Burger":"🍔","Sonstiges":"🍽️"};
 const CC=["#2D6A4F","#40916C","#52796F","#588157","#D4A373","#BC6C25","#DDA15E","#E9C46A"];
-const mkEmpty=()=>({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",whatsapp:"",dailySpecial:"",min:"",sched:mkDS(),delivSched:null,useDelivSched:false,zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:"",pdfName:"",isPremium:false,imageFile:null,imageUrl:""});
+const mkEmpty=()=>({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",whatsapp:"",website:"",dailySpecial:"",min:"",sched:mkDS(),delivSched:null,useDelivSched:false,zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:"",pdfName:"",isPremium:false,imageFile:null,imageUrl:""});
 const lb={fontSize:11,fontWeight:700,color:"#6B7E6F",textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:6};
 const is={fontSize:14,fontWeight:500,border:"1.5px solid #D5CCBB",borderRadius:10,background:"#FFF",color:"#1B2A1D",padding:"12px 14px",width:"100%",fontFamily:"inherit"};
 
@@ -46,7 +46,7 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         const{data:{publicUrl}}=supabase.storage.from("menus").getPublicUrl(fn);
         pdfUrl=publicUrl;pdfName=f.file.name;
       }
-      const rd={name:f.name,categories:f.cats,street:f.street,house_nr:f.nr,plz:f.plz,city:f.city,phone:f.phone||null,whatsapp:f.whatsapp||null,daily_special:f.dailySpecial||null,image_url:imageUrl||null,schedule:f.sched,delivery_schedule:f.useDelivSched?f.delivSched:null,min_order:f.min||null,pdf_url:pdfUrl||null,pdf_name:pdfName||null,color:CC[Math.floor(Math.random()*CC.length)],is_premium:f.isPremium,owner_id:user.id};
+      const rd={name:f.name,categories:f.cats,street:f.street,house_nr:f.nr,plz:f.plz,city:f.city,phone:f.phone||null,whatsapp:f.whatsapp||null,website:f.website||null,daily_special:f.dailySpecial||null,image_url:imageUrl||null,schedule:f.sched,delivery_schedule:f.useDelivSched?f.delivSched:null,min_order:f.min||null,pdf_url:pdfUrl||null,pdf_name:pdfName||null,color:CC[Math.floor(Math.random()*CC.length)],is_premium:f.isPremium,owner_id:user.id};
       let rid=editId;
       if(editId){
         const{error}=await supabase.from("restaurants").update(rd).eq("id",editId);
@@ -74,6 +74,7 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
       <div style={{display:"grid",gridTemplateColumns:"1fr 2fr",gap:10}}><div><label style={lb}>PLZ</label><input style={is} placeholder="49632" value={f.plz} onChange={e=>upd("plz",e.target.value.replace(/\D/g,"").slice(0,5))}/></div><div><label style={lb}>Ort</label><input style={is} placeholder="Essen" value={f.city} onChange={e=>upd("city",e.target.value)}/></div></div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}><div><label style={lb}>Telefon</label><input style={is} placeholder="05434-1234567" value={f.phone} onChange={e=>upd("phone",e.target.value)}/></div><div><label style={lb}>Mindestbestellwert</label><input style={is} placeholder="10€" value={f.min} onChange={e=>upd("min",e.target.value)}/></div></div>
       <div><label style={lb}>WhatsApp-Nummer (optional)</label><input style={is} placeholder="z.B. 4917412345678 (mit Ländervorwahl)" value={f.whatsapp||""} onChange={e=>upd("whatsapp",e.target.value)}/></div>
+      <div><label style={lb}>Website (optional)</label><input style={is} placeholder="z.B. www.hotspicy-essen.de" value={f.website||""} onChange={e=>upd("website",e.target.value)}/></div>
       <div><label style={lb}>Tagesangebote (optional, nur Premium)</label><textarea style={{...is,height:100,resize:"vertical"}} placeholder={"Mo: Nudeltag - alle Nudeln 7€\nDi: Pizzatag - alle 28cm Pizza 7€\nMi: Schnitzeltag 9€"} value={f.dailySpecial||""} onChange={e=>upd("dailySpecial",e.target.value)}/></div>
       <div style={{display:"flex",alignItems:"center",gap:10}}><button onClick={()=>upd("isPremium",!f.isPremium)} style={{width:48,height:26,borderRadius:13,background:f.isPremium?"#2D6A4F":"#DDD",border:"none",cursor:"pointer",position:"relative"}}><div style={{width:22,height:22,borderRadius:11,background:"#FFF",position:"absolute",top:2,left:f.isPremium?24:2,transition:"left 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.2)"}}/></button><span style={{fontSize:13,fontWeight:700,color:f.isPremium?"#2D6A4F":"#6B7E6F"}}>⭐ Premium</span></div>
 
@@ -200,7 +201,7 @@ export default function AdminPage(){
 
   const startEdit=(r)=>{
     const rz=(zones||[]).filter(z=>z.restaurant_id===r.id).map(z=>({name:z.zone_name,plz:z.plz,cost:z.delivery_cost,minOrder:z.min_order||""}));
-    setEditInit({name:r.name,cats:r.categories||[],street:r.street||"",nr:r.house_nr||"",plz:r.plz||"",city:r.city||"",phone:r.phone||"",whatsapp:r.whatsapp||"",dailySpecial:r.daily_special||"",min:r.min_order||"",sched:r.schedule||mkDS(),delivSched:r.delivery_schedule||mkDS(),useDelivSched:!!r.delivery_schedule,zones:rz.length>0?rz:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:r.pdf_url||"",pdfName:r.pdf_name||"",isPremium:r.is_premium||false,imageFile:null,imageUrl:r.image_url||""});
+    setEditInit({name:r.name,cats:r.categories||[],street:r.street||"",nr:r.house_nr||"",plz:r.plz||"",city:r.city||"",phone:r.phone||"",whatsapp:r.whatsapp||"",website:r.website||"",dailySpecial:r.daily_special||"",min:r.min_order||"",sched:r.schedule||mkDS(),delivSched:r.delivery_schedule||mkDS(),useDelivSched:!!r.delivery_schedule,zones:rz.length>0?rz:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:r.pdf_url||"",pdfName:r.pdf_name||"",isPremium:r.is_premium||false,imageFile:null,imageUrl:r.image_url||""});
     setEditId(r.id);setTab("edit");setMsg("");
   };
   const handleSaved=(m)=>{loadAll();setMsg(m);setTab("list");setEditId(null);setEditInit(null);};

@@ -185,6 +185,7 @@ export default function App(){
       whatsapp:r.whatsapp||null,
       dailySpecial:r.daily_special||null,
       imageUrl:r.image_url||null,
+      website:r.website||null,
       zones:(zones||[]).filter(z=>z.restaurant_id===r.id).map(z=>({name:z.zone_name,plz:z.plz,cost:z.delivery_cost,minOrder:z.min_order||""})),
       added:r.created_at?.slice(0,10)||""
     }));
@@ -418,7 +419,8 @@ export default function App(){
                 <div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:240,background:P.card,borderRadius:16,overflow:"hidden",border:`1.5px solid ${P.border}`,cursor:"pointer"}} className="card">
                   <div style={{height:120,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
                     <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                    {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:10,fontWeight:700,padding:"4px"}}>Geschlossen</div>}
+                    {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.75)",color:"#FFF",textAlign:"center",fontSize:10,fontWeight:700,padding:"4px"}}>Geschlossen</div>}
+                    {op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.75)",color:"#FFF",textAlign:"center",fontSize:10,fontWeight:700,padding:"4px"}}>Geöffnet</div>}
                   </div>
                   <div style={{padding:"12px 14px"}}>
                     <h4 style={{fontSize:15,fontWeight:800,marginBottom:4,lineHeight:1.2}}>{r.name}</h4>
@@ -451,7 +453,8 @@ export default function App(){
               {/* Image */}
               <div style={{height:160,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
                 <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Geschlossen</div>}
+                {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.75)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Geschlossen</div>}
+                {op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.75)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Geöffnet</div>}
                 {r.dailySpecial&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(45,106,79,0.9)",color:"#FFF",fontSize:10,fontWeight:700,padding:"4px 12px",borderRadius:100,display:"flex",alignItems:"center",gap:4}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg>Angebote</div>}
                 {r.imageUrl&&<div style={{position:"absolute",bottom:10,right:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
               </div>
@@ -527,6 +530,7 @@ export default function App(){
               {selRest.phone&&<a href={`tel:${selRest.phone}`} className="btn" style={{flex:1,minWidth:90,background:P.accent,color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center",gap:6}}>📞 Anrufen</a>}
               {selRest.whatsapp&&<a href={`https://wa.me/${selRest.whatsapp.replace(/[^0-9]/g,"")}`} target="_blank" rel="noopener" className="btn" style={{flex:1,minWidth:90,background:"#25D366",color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</a>}
               <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getAddr(selRest))}`} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:90,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>📍 Route</a>
+              {selRest.website&&<a href={selRest.website.startsWith("http")?selRest.website:`https://${selRest.website}`} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:90,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>🌐 Website</a>}
             </div>
 
             {/* Info Grid */}
