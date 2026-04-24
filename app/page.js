@@ -5,7 +5,7 @@ import { supabase } from "../lib/supabase";
 const DAYS=["Mo","Di","Mi","Do","Fr","Sa","So"],DAYS_L=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"],DIM={1:0,2:1,3:2,4:3,5:4,6:5,0:6};
 const mkS=(o,c,cl=[])=>DAYS.map((_,i)=>cl.includes(i)?{closed:true,slots:[]}:{closed:false,slots:[{open:o,close:c}]});
 const CATS=["Alle","Italienisch","Vietnamesisch","Türkisch","Japanisch","Indisch","Griechisch","Chinesisch","Mexikanisch","Deutsch","Vegan","Vegetarisch","Halal","Burger","Sonstiges"];
-const CE={"Italienisch":"🍕","Vietnamesisch":"🍜","Türkisch":"🥙","Japanisch":"🍣","Indisch":"🍛","Griechisch":"🥗","Chinesisch":"🥡","Mexikanisch":"🌮","Deutsch":"🥨","Vegan":"🌱","Vegetarisch":"🥬","Halal":"☪️","Burger":"🍔","Sonstiges":"🍽️","Alle":"🔥"};
+const CE={"Italienisch":"🍕","Vietnamesisch":"🍜","Türkisch":"🥙","Japanisch":"🍣","Indisch":"🍛","Griechisch":"🥗","Chinesisch":"🥡","Mexikanisch":"🌮","Deutsch":"🥨","Vegan":"🌱","Vegetarisch":"🥬","Halal":"☪️","Burger":"🍔","Sonstiges":"🍽️","Alle":"📋"};
 const CC=["#2D6A4F","#40916C","#52796F","#588157","#D4A373","#BC6C25","#DDA15E","#E9C46A"];
 const TIMES=[];for(let h=0;h<24;h++){TIMES.push(`${String(h).padStart(2,"0")}:00`);TIMES.push(`${String(h).padStart(2,"0")}:30`);}
 const DS=DAYS.map(()=>({closed:false,slots:[{open:"11:00",close:"22:00"}]}));
@@ -408,7 +408,7 @@ export default function App(){
           </div>
 
           {/* Recently viewed */}
-          {viewed.length>0&&!search&&selCat==="Alle"&&(<div style={{marginBottom:24}}><div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🕐 Zuletzt angesehen</div><div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:6}}>{viewed.map(r=>{const z=plzSearch?findZone(r,plzSearch):null;return(<div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:190,background:P.card,borderRadius:14,padding:"14px 16px",border:`1.5px solid ${P.border}`,cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div style={{width:32,height:32,borderRadius:10,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{CE[r.cats[0]]}</div><div style={{fontSize:14,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div></div><div style={{display:"flex",gap:4}}><span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:isDelivering(r)?"#E8FFF3":"#FFF0F3",color:isDelivering(r)?"#1B5E3B":"#C4314B"}}>{isDelivering(r)?"Lieferung möglich":"Keine Lieferung"}</span>{z&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>🚗 {z.cost}</span>}</div></div>);})}</div></div>)}
+          {viewed.length>0&&!search&&selCat==="Alle"&&(<div style={{marginBottom:24}}><div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🕐 Zuletzt angesehen</div><div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:6}}>{viewed.map(r=>{const z=plzSearch?findZone(r,plzSearch):null;return(<div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:190,background:P.card,borderRadius:14,padding:"14px 16px",border:`1.5px solid ${P.border}`,cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div style={{width:32,height:32,borderRadius:10,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{CE[r.cats[0]]}</div><div style={{fontSize:14,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div></div><div style={{display:"flex",gap:4}}><span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:isDelivering(r)?"#E8FFF3":"#FFF0F3",color:isDelivering(r)?"#1B5E3B":"#C4314B"}}>{isDelivering(r)?"Lieferung möglich":"Keine Lieferung"}</span>{z&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>{z.cost}</span>}</div></div>);})}</div></div>)}
 
           {/* NEW ENTRIES SLIDER */}
           {!search&&selCat==="Alle"&&viewed.length===0&&(()=>{const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70"};const newest=[...rests].sort((a,b)=>(b.added||"").localeCompare(a.added||"")).slice(0,5);return newest.length>0?(<div style={{marginBottom:28}}>
@@ -425,7 +425,7 @@ export default function App(){
                     <div style={{fontSize:11,color:P.textM,marginBottom:6}}>{r.cats.slice(0,3).join(", ")}</div>
                     <div style={{display:"flex",gap:6,flexWrap:"wrap",fontSize:11,color:P.textM}}>
                       <span>Min. {r.min}</span>
-                      {z&&<span>· 🚗 {z.cost==="0€"?"Gratis":z.cost}</span>}
+                      {z&&<span>· {z.cost==="0€"?"Gratis":z.cost}</span>}
                     </div>
                   </div>
                 </div>
@@ -451,8 +451,8 @@ export default function App(){
               {/* Image */}
               <div style={{height:160,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
                 <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Aktuell keine Lieferung</div>}
-                {r.dailySpecial&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(188,108,37,0.9)",color:"#FFF",fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:100}}>🔥 Tagesangebote</div>}
+                {!op&&<div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(0,0,0,0.6)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Geschlossen</div>}
+                {r.dailySpecial&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(45,106,79,0.9)",color:"#FFF",fontSize:10,fontWeight:700,padding:"4px 12px",borderRadius:100,display:"flex",alignItems:"center",gap:4}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg>Angebote</div>}
                 {r.imageUrl&&<div style={{position:"absolute",bottom:10,right:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
               </div>
               {/* Info */}
@@ -518,7 +518,7 @@ export default function App(){
                 </div>
               </div>
               {/* Status badge */}
-              <div style={{position:"absolute",top:16,right:16}}><span style={{fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:100,background:dlv?"rgba(52,211,153,0.9)":"rgba(255,143,163,0.9)",color:"#FFF"}}>{dlv?"Lieferung möglich":"Aktuell keine Lieferung"}</span></div>
+              <div style={{position:"absolute",top:16,right:16}}><span style={{fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:100,background:dlv?"rgba(52,211,153,0.9)":"rgba(255,143,163,0.9)",color:"#FFF"}}>{dlv?"Lieferung möglich":"Geschlossen"}</span></div>
               {selRest.prem&&<div style={{position:"absolute",top:16,left:16,background:"rgba(45,106,79,0.9)",color:"#FFF",fontSize:11,fontWeight:800,padding:"4px 12px",borderRadius:100}}>⭐ Premium</div>}
             </div>
 
@@ -540,14 +540,14 @@ export default function App(){
                 <div style={{fontSize:15,fontWeight:700}}>{selRest.phone||"—"}</div>
               </div>
               <div style={{background:P.card,borderRadius:14,padding:"16px",border:`1.5px solid ${P.border}`}}>
-                <div style={{fontSize:11,color:P.textM,fontWeight:600,marginBottom:6}}>🛒 Mindestbestellwert</div>
+                <div style={{fontSize:11,color:P.textM,fontWeight:600,marginBottom:6}}>Mindestbestellwert</div>
                 <div style={{fontSize:15,fontWeight:700}}>{selRest.min}</div>
               </div>
             </div>
 
             {/* Delivery Zones */}
             <div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
-              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:14}}>🚗 Liefergebiete & Kosten</div>
+              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:14,display:"flex",alignItems:"center",gap:6}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Liefergebiete & Kosten</div>
               <div style={{display:"grid",gap:8}}>
                 {selRest.zones.map((zo,i)=>{const isMatch=plzSearch&&zo.plz===plzSearch;return(
                   <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",borderRadius:12,background:isMatch?"#E8F4FD":"#F8F6F2",border:isMatch?"2px solid #93C5FD":"1px solid transparent"}}>
@@ -562,20 +562,20 @@ export default function App(){
             </div>
 
             {/* Daily Special */}
-            {selRest.dailySpecial&&<div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:"1.5px solid #FFDDB5"}}>
-              <div style={{fontSize:13,fontWeight:800,color:"#BC6C25",marginBottom:10}}>🔥 Tagesangebote</div>
+            {selRest.dailySpecial&&<div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.accent}40`}}>
+              <div style={{fontSize:13,fontWeight:800,color:"#2D6A4F",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" strokeWidth="2" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5" fill="#2D6A4F"/></svg>Tagesangebote</div>
               <div style={{fontSize:14,fontWeight:600,color:"#8B4513",whiteSpace:"pre-line",lineHeight:1.7}}>{selRest.dailySpecial}</div>
             </div>}
 
             {/* Delivery Times */}
             <div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
-              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10}}>🚗 Lieferzeiten</div>
+              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Lieferzeiten</div>
               <SchedShow schedule={selRest.delivSched||selRest.sched}/>
             </div>
 
             {/* Opening Hours - only show if different from delivery */}
             {selRest.delivSched&&<div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
-              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10}}>🏪 Öffnungszeiten (Laden / Abholung)</div>
+              <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10}}>Öffnungszeiten (Laden / Abholung)</div>
               <SchedShow schedule={selRest.sched}/>
             </div>}
 
