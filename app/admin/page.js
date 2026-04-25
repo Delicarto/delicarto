@@ -13,6 +13,13 @@ const mkEmpty=()=>({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",what
 const lb={fontSize:11,fontWeight:700,color:"#6B7E6F",textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:6};
 const is={fontSize:14,fontWeight:500,border:"1.5px solid #D5CCBB",borderRadius:10,background:"#FFF",color:"#1B2A1D",padding:"12px 14px",width:"100%",fontFamily:"inherit"};
 
+// Status-Badge Helper
+const statusBadge=(status)=>{
+  if(status==="approved")return{label:"✅ Freigegeben",bg:"#E8F5E9",color:"#1B5E3B"};
+  if(status==="rejected")return{label:"❌ Abgelehnt",bg:"#FFF0F3",color:"#C4314B"};
+  return{label:"⏳ Wartet auf Freigabe",bg:"#FFF5EB",color:"#BC6C25"};
+};
+
 // ============ FORM COMPONENT ============
 function RestForm({initial,editId,user,onSaved,onCancel}){
   const[f,setF]=useState(initial||mkEmpty());
@@ -47,6 +54,8 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         pdfUrl=publicUrl;pdfName=f.file.name;
       }
       const rd={name:f.name,categories:f.cats,street:f.street,house_nr:f.nr,plz:f.plz,city:f.city,phone:f.phone||null,whatsapp:f.whatsapp||null,website:f.website||null,daily_special:f.dailySpecial||null,image_url:imageUrl||null,schedule:f.sched,delivery_schedule:f.useDelivSched?f.delivSched:null,min_order:f.min||null,pdf_url:pdfUrl||null,pdf_name:pdfName||null,color:CC[Math.floor(Math.random()*CC.length)],is_premium:f.isPremium,owner_id:user.id};
+      // Manuell angelegte Lieferdienste sind direkt approved
+      if(!editId){rd.approval_status="approved";rd.approved_at=new Date().toISOString();}
       let rid=editId;
       if(editId){
         const{error}=await supabase.from("restaurants").update(rd).eq("id",editId);
@@ -199,6 +208,24 @@ export default function AdminPage(){
   const doLogout=async()=>{await supabase.auth.signOut();setUser(null);};
   const deleteRest=async(id)=>{if(!confirm("Wirklich löschen?"))return;await supabase.from("delivery_zones").delete().eq("restaurant_id",id);await supabase.from("restaurants").delete().eq("id",id);await loadAll();setMsg("🗑️ Gelöscht.");};
 
+  const approveRest=async(id,name)=>{
+    if(!confirm(`"${name}" freigeben? Wird sofort auf DeliCarto sichtbar.`))return;
+    const{error}=await supabase.from("restaurants").update({approval_status:"approved",approved_at:new Date().toISOString()}).eq("id",id);
+    if(error){setMsg("❌ Fehler: "+error.message);return;}
+    await loadAll();setMsg(`✅ "${name}" freigegeben und live!`);
+  };
+  const rejectRest=async(id,name)=>{
+    if(!confirm(`"${name}" ablehnen? Erscheint dann nicht auf DeliCarto.`))return;
+    const{error}=await supabase.from("restaurants").update({approval_status:"rejected"}).eq("id",id);
+    if(error){setMsg("❌ Fehler: "+error.message);return;}
+    await loadAll();setMsg(`"${name}" abgelehnt.`);
+  };
+  const resetApproval=async(id,name)=>{
+    if(!confirm(`"${name}" auf "Wartet" zurücksetzen?`))return;
+    await supabase.from("restaurants").update({approval_status:"pending",approved_at:null}).eq("id",id);
+    await loadAll();setMsg(`"${name}" wartet wieder auf Freigabe.`);
+  };
+
   const startEdit=(r)=>{
     const rz=(zones||[]).filter(z=>z.restaurant_id===r.id).map(z=>({name:z.zone_name,plz:z.plz,cost:z.delivery_cost,minOrder:z.min_order||""}));
     setEditInit({name:r.name,cats:r.categories||[],street:r.street||"",nr:r.house_nr||"",plz:r.plz||"",city:r.city||"",phone:r.phone||"",whatsapp:r.whatsapp||"",website:r.website||"",dailySpecial:r.daily_special||"",min:r.min_order||"",sched:r.schedule||mkDS(),delivSched:r.delivery_schedule||mkDS(),useDelivSched:!!r.delivery_schedule,zones:rz.length>0?rz:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,pdfUrl:r.pdf_url||"",pdfName:r.pdf_name||"",isPremium:r.is_premium||false,imageFile:null,imageUrl:r.image_url||""});
@@ -231,17 +258,33 @@ export default function AdminPage(){
       </div>
       <div style={{maxWidth:1000,margin:"0 auto",padding:"24px"}}>
         {msg&&<div style={{padding:"12px 16px",borderRadius:12,marginBottom:16,background:msg.startsWith("❌")?"#FFF0F3":"#E8F5E9",fontSize:13,fontWeight:700,color:msg.startsWith("❌")?"#C4314B":"#1B5E3B"}}>{msg}</div>}
-        <div style={{display:"flex",gap:8,marginBottom:24}}>
+        <div style={{display:"flex",gap:8,marginBottom:24,flexWrap:"wrap"}}>
+          <button onClick={()=>{setTab("pending");setEditId(null);setEditInit(null);setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="pending"?"#BC6C25":P.card,color:tab==="pending"?"#FFF":P.textM,border:tab==="pending"?"none":`1.5px solid ${P.border}`,cursor:"pointer",position:"relative"}}>⏳ Wartet auf Freigabe ({rests.filter(r=>r.approval_status==="pending"||!r.approval_status).length}){rests.filter(r=>r.approval_status==="pending"||!r.approval_status).length>0&&<span style={{position:"absolute",top:-4,right:-4,width:10,height:10,background:"#C4314B",borderRadius:"50%"}}/>}</button>
           <button onClick={()=>{setTab("list");setEditId(null);setEditInit(null);setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="list"?P.accent:P.card,color:tab==="list"?"#FFF":P.textM,border:tab==="list"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>📋 Alle ({rests.length})</button>
           <button onClick={()=>{setTab("add");setEditId(null);setEditInit(null);setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="add"?P.accent:P.card,color:tab==="add"?"#FFF":P.textM,border:tab==="add"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>+ Neu</button>
           <button onClick={()=>{setTab("digi");setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="digi"?"#BC6C25":P.card,color:tab==="digi"?"#FFF":P.textM,border:tab==="digi"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>📸 Digi-Anfragen ({digiReqs.length})</button>
         </div>
-        {tab==="list"&&(rests.length===0?(<div style={{textAlign:"center",padding:"60px",color:P.textM}}><div style={{fontSize:48}}>📋</div><p style={{fontWeight:700,marginTop:12}}>Noch keine Lieferdienste.</p></div>):(<div style={{display:"grid",gap:10}}>{rests.map(r=>{const rz=(zones||[]).filter(z=>z.restaurant_id===r.id);return(<div key={r.id} style={{background:P.card,borderRadius:16,padding:"18px 20px",border:`1.5px solid ${P.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+        {tab==="pending"&&(()=>{const pending=rests.filter(r=>r.approval_status==="pending"||!r.approval_status);return pending.length===0?(<div style={{textAlign:"center",padding:"60px",color:P.textM}}><div style={{fontSize:48}}>✨</div><p style={{fontWeight:700,marginTop:12}}>Keine Anmeldungen warten auf Freigabe.</p><p style={{fontSize:13,marginTop:6}}>Neue Lieferdienste, die sich registrieren, erscheinen hier.</p></div>):(<div style={{display:"grid",gap:10}}>{pending.map(r=>{const rz=(zones||[]).filter(z=>z.restaurant_id===r.id);const sb=statusBadge(r.approval_status);return(<div key={r.id} style={{background:P.card,borderRadius:16,padding:"18px 20px",border:`2px solid ${P.warm}40`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
           <div style={{display:"flex",alignItems:"center",gap:14,flex:1,minWidth:200}}>
             <div style={{width:44,height:44,borderRadius:12,background:`${r.color||"#2D6A4F"}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{CE[r.categories?.[0]]||"🍽️"}</div>
-            <div><div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:15,fontWeight:800}}>{r.name}</span>{r.is_premium&&<span style={{fontSize:9,fontWeight:800,background:"#2D6A4F",color:"#FFF",padding:"2px 8px",borderRadius:100}}>PRO</span>}</div><div style={{fontSize:11,color:P.textM}}>{r.street} {r.house_nr}, {r.plz} {r.city} · {rz.length} Gebiet{rz.length!==1?"e":""} · 👁️ {r.views||0} Aufrufe</div></div>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}><span style={{fontSize:15,fontWeight:800}}>{r.name||"(noch kein Name)"}</span><span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:sb.bg,color:sb.color}}>{sb.label}</span></div>
+              <div style={{fontSize:11,color:P.textM,marginTop:2}}>📞 {r.phone||"-"} · {r.city||"keine Stadt"} {r.submitted_at&&`· angemeldet ${new Date(r.submitted_at).toLocaleDateString("de-DE")}`}</div>
+            </div>
           </div>
-          <div style={{display:"flex",gap:6}}><button onClick={()=>startEdit(r)} style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:P.bg,border:`1.5px solid ${P.border}`,cursor:"pointer"}}>✏️</button><button onClick={()=>deleteRest(r.id)} style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:"#FFF0F3",border:"1px solid #FFD6E0",color:"#C4314B",cursor:"pointer"}}>🗑️</button></div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            <button onClick={()=>approveRest(r.id,r.name)} style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:P.accent,color:"#FFF",border:"none",cursor:"pointer"}}>✅ Freigeben</button>
+            <button onClick={()=>rejectRest(r.id,r.name)} style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:"#FFF0F3",border:"1px solid #FFD6E0",color:"#C4314B",cursor:"pointer"}}>❌ Ablehnen</button>
+            <button onClick={()=>startEdit(r)} style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:P.bg,border:`1.5px solid ${P.border}`,cursor:"pointer"}}>✏️ Bearbeiten</button>
+            <button onClick={()=>deleteRest(r.id)} style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:"#FFF0F3",border:"1px solid #FFD6E0",color:"#C4314B",cursor:"pointer"}}>🗑️</button>
+          </div>
+        </div>);})}</div>);})()}
+        {tab==="list"&&(rests.length===0?(<div style={{textAlign:"center",padding:"60px",color:P.textM}}><div style={{fontSize:48}}>📋</div><p style={{fontWeight:700,marginTop:12}}>Noch keine Lieferdienste.</p></div>):(<div style={{display:"grid",gap:10}}>{rests.map(r=>{const rz=(zones||[]).filter(z=>z.restaurant_id===r.id);const sb=statusBadge(r.approval_status);return(<div key={r.id} style={{background:P.card,borderRadius:16,padding:"18px 20px",border:`1.5px solid ${P.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+          <div style={{display:"flex",alignItems:"center",gap:14,flex:1,minWidth:200}}>
+            <div style={{width:44,height:44,borderRadius:12,background:`${r.color||"#2D6A4F"}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{CE[r.categories?.[0]]||"🍽️"}</div>
+            <div><div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}><span style={{fontSize:15,fontWeight:800}}>{r.name}</span>{r.is_premium&&<span style={{fontSize:9,fontWeight:800,background:"#2D6A4F",color:"#FFF",padding:"2px 8px",borderRadius:100}}>PRO</span>}<span style={{fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:100,background:sb.bg,color:sb.color}}>{sb.label}</span></div><div style={{fontSize:11,color:P.textM}}>{r.street} {r.house_nr}, {r.plz} {r.city} · {rz.length} Gebiet{rz.length!==1?"e":""} · 👁️ {r.views||0} Aufrufe</div></div>
+          </div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{(r.approval_status==="pending"||!r.approval_status)&&<button onClick={()=>approveRest(r.id,r.name)} style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:P.accent,color:"#FFF",border:"none",cursor:"pointer"}}>✅</button>}{r.approval_status==="approved"&&<button onClick={()=>resetApproval(r.id,r.name)} title="Auf Wartend zurücksetzen" style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:P.bg,border:`1.5px solid ${P.border}`,cursor:"pointer"}}>⏳</button>}<button onClick={()=>startEdit(r)} style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:P.bg,border:`1.5px solid ${P.border}`,cursor:"pointer"}}>✏️</button><button onClick={()=>deleteRest(r.id)} style={{padding:"8px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:"#FFF0F3",border:"1px solid #FFD6E0",color:"#C4314B",cursor:"pointer"}}>🗑️</button></div>
         </div>);})}</div>))}
         {tab==="add"&&<RestForm key="new" user={user} onSaved={handleSaved} onCancel={()=>{setTab("list");setMsg("");}}/>}
         {tab==="edit"&&editInit&&<RestForm key={editId} initial={editInit} editId={editId} user={user} onSaved={handleSaved} onCancel={()=>{setTab("list");setEditId(null);setEditInit(null);setMsg("");}}/>}
