@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [restaurant, setRestaurant] = useState(null);
   const [zones, setZones] = useState([{ name: "", plz: "", cost: "0€", minOrder: "" }]);
+  const [useDelivSched, setUseDelivSched] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [msg, setMsg] = useState("");
@@ -41,14 +42,18 @@ export default function DashboardPage() {
     if (error) {
       setErr("Fehler beim Laden: " + error.message);
     } else if (data) {
-      // Schedule und Zones initialisieren
       if (!data.schedule || !Array.isArray(data.schedule) || data.schedule.length !== 7) {
         data.schedule = mkDS();
+      }
+      // Lieferzeiten-Editor anzeigen, wenn separate Lieferzeiten gesetzt sind
+      if (data.delivery_schedule && Array.isArray(data.delivery_schedule) && data.delivery_schedule.length === 7) {
+        setUseDelivSched(true);
+      } else {
+        data.delivery_schedule = null;
       }
       if (!data.categories) data.categories = [];
       setRestaurant(data);
 
-      // Liefergebiete laden
       const { data: zd } = await supabase
         .from("delivery_zones")
         .select("*")
@@ -69,6 +74,21 @@ export default function DashboardPage() {
 
   const update = (field, value) => setRestaurant({ ...restaurant, [field]: value });
 
+  const toggleDelivSched = () => {
+    if (useDelivSched) {
+      // Abschalten: delivery_schedule auf null setzen
+      setUseDelivSched(false);
+      update("delivery_schedule", null);
+    } else {
+      // Einschalten: mit Standard-Werten oder Kopie der Öffnungszeiten initialisieren
+      setUseDelivSched(true);
+      const initial = restaurant.delivery_schedule && Array.isArray(restaurant.delivery_schedule) && restaurant.delivery_schedule.length === 7
+        ? restaurant.delivery_schedule
+        : (restaurant.schedule ? restaurant.schedule.map(d => ({ closed: d.closed, slots: d.slots.map(s => ({ ...s })) })) : mkDS());
+      update("delivery_schedule", initial);
+    }
+  };
+
   const handleSave = async () => {
     setMsg(""); setErr("");
     const errors = [];
@@ -83,7 +103,6 @@ export default function DashboardPage() {
       let pdfName = restaurant.pdf_name;
       let imageUrl = restaurant.image_url;
 
-      // Bild hochladen falls neu
       if (imageFile) {
         const imgName = `img-${Date.now()}-${imageFile.name}`;
         const { error: ie } = await supabase.storage.from("menus").upload(imgName, imageFile);
@@ -92,7 +111,6 @@ export default function DashboardPage() {
         imageUrl = publicUrl;
       }
 
-      // PDF hochladen falls neu
       if (pdfFile) {
         const fn = `${Date.now()}-${pdfFile.name}`;
         const { error: fe } = await supabase.storage.from("menus").upload(fn, pdfFile);
@@ -102,7 +120,6 @@ export default function DashboardPage() {
         pdfName = pdfFile.name;
       }
 
-      // Restaurant updaten
       const updateData = {
         name: restaurant.name.trim(),
         categories: restaurant.categories || [],
@@ -116,6 +133,7 @@ export default function DashboardPage() {
         daily_special: restaurant.is_premium ? (restaurant.daily_special?.trim() || null) : null,
         min_order: restaurant.min_order?.trim() || null,
         schedule: restaurant.schedule,
+        delivery_schedule: useDelivSched ? restaurant.delivery_schedule : null,
         image_url: imageUrl,
         pdf_url: pdfUrl,
         pdf_name: pdfName,
@@ -124,7 +142,6 @@ export default function DashboardPage() {
       const { error: ue } = await supabase.from("restaurants").update(updateData).eq("id", restaurant.id);
       if (ue) throw ue;
 
-      // Liefergebiete updaten: erst alle löschen, dann neu einfügen
       await supabase.from("delivery_zones").delete().eq("restaurant_id", restaurant.id);
       const validZones = zones.filter(z => z.name?.trim() && z.plz?.trim());
       if (validZones.length > 0) {
@@ -137,7 +154,6 @@ export default function DashboardPage() {
         })));
       }
 
-      // Lokale States aktualisieren
       setRestaurant({ ...restaurant, ...updateData });
       setImageFile(null);
       setPdfFile(null);
@@ -175,20 +191,18 @@ export default function DashboardPage() {
     : { color: "#BC6C25", bg: "#FFF5EB", label: "⏳ Wird geprüft — wir schalten dich innerhalb von 24h frei" };
 
   const isPremium = restaurant.is_premium;
+  const ds = restaurant.delivery_schedule || mkDS();
 
   return (
     <div style={{ fontFamily: "system-ui", background: P.bg, minHeight: "100vh", padding: "20px 16px 40px" }}>
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
-        {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, paddingTop: 8 }}>
           <div style={{ fontSize: 22, fontWeight: 900, color: P.text }}>🍽️ Mein Dashboard</div>
           <button onClick={handleLogout} style={{ padding: "8px 16px", background: "#FFF", color: P.text, borderRadius: 100, fontWeight: 600, fontSize: 13, border: "1.5px solid " + P.border, cursor: "pointer" }}>Abmelden</button>
         </div>
 
-        {/* Status */}
         <div style={{ padding: "14px 18px", borderRadius: 14, marginBottom: 16, background: statusInfo.bg, color: statusInfo.color, fontSize: 13, fontWeight: 700 }}>{statusInfo.label}</div>
 
-        {/* Premium-Banner */}
         {!isPremium && (
           <div style={{ padding: "16px 20px", borderRadius: 14, marginBottom: 16, background: "linear-gradient(135deg, #2D6A4F 0%, #40916C 100%)", color: "#FFF" }}>
             <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>⭐ Premium freischalten</div>
@@ -201,15 +215,12 @@ export default function DashboardPage() {
           <div style={{ padding: "14px 18px", borderRadius: 14, marginBottom: 16, background: "linear-gradient(135deg, #D4A373 0%, #BC6C25 100%)", color: "#FFF", fontSize: 13, fontWeight: 700 }}>⭐ Premium aktiv — alle Features freigeschaltet</div>
         )}
 
-        {/* Meldungen */}
         {err && <div style={{ padding: "12px 14px", borderRadius: 10, marginBottom: 14, background: "#FFF0F3", fontSize: 13, fontWeight: 700, color: "#C4314B" }}>{err}</div>}
         {msg && <div style={{ padding: "12px 14px", borderRadius: 10, marginBottom: 14, background: "#E8F5E9", fontSize: 13, fontWeight: 700, color: "#1B5E3B" }}>{msg}</div>}
 
-        {/* Hauptkarte: Profil */}
         <div style={{ background: P.card, borderRadius: 20, padding: "24px 22px", border: "1.5px solid " + P.border, marginBottom: 16 }}>
           <div style={{ display: "grid", gap: 16 }}>
 
-            {/* Stammdaten */}
             <div style={{ fontSize: 16, fontWeight: 800, color: P.text, marginBottom: -4 }}>📝 Stammdaten</div>
 
             <div>
@@ -298,7 +309,46 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Logo / Bild */}
+            {/* Lieferzeiten Toggle */}
+            <div style={{ borderTop: "1px solid " + P.border, paddingTop: 16, marginTop: 4, display: "flex", alignItems: "center", gap: 12 }}>
+              <button onClick={toggleDelivSched} style={{ width: 48, height: 26, borderRadius: 13, background: useDelivSched ? P.accent : "#DDD", border: "none", cursor: "pointer", position: "relative", flexShrink: 0 }}>
+                <div style={{ width: 22, height: 22, borderRadius: 11, background: "#FFF", position: "absolute", top: 2, left: useDelivSched ? 24 : 2, transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
+              </button>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: useDelivSched ? P.accent : P.textM }}>🚚 Abweichende Lieferzeiten</div>
+                <div style={{ fontSize: 11, color: P.textM, marginTop: 2 }}>Aktivieren, wenn Lieferzeiten anders sind als Öffnungszeiten (z.B. Küche 22:00 — Lieferung nur bis 21:30)</div>
+              </div>
+            </div>
+
+            {/* Lieferzeiten Editor */}
+            {useDelivSched && (
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: P.text, marginBottom: 12 }}>🚚 Lieferzeiten</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                  {DAYS.map((_, i) => {
+                    const d = ds[i];
+                    return (<div key={`d${i}`} style={{ padding: "8px 12px", borderRadius: 10, background: d.closed ? "#FFF0F3" : "#E8F4FD", border: `1px solid ${d.closed ? "#FFD6E0" : "#93C5FD"}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <div style={{ width: 28, fontWeight: 800, fontSize: 12 }}>{DAYS[i]}</div>
+                        <button onClick={() => { const s = [...ds]; s[i] = { ...s[i], closed: !s[i].closed, slots: s[i].closed ? [{ open: "17:00", close: "22:00" }] : s[i].slots }; update("delivery_schedule", s); }} style={{ padding: "3px 10px", borderRadius: 8, fontSize: 10, fontWeight: 700, cursor: "pointer", border: "none", background: d.closed ? "#FF8FA3" : "#1D6FA5", color: "#FFF" }}>{d.closed ? "Keine Lieferung" : "Lieferung"}</button>
+                        {!d.closed && <button onClick={() => { const src = ds[i]; update("delivery_schedule", ds.map(() => ({ closed: src.closed, slots: src.slots.map(s => ({ ...s })) }))); }} style={{ marginLeft: "auto", padding: "3px 8px", borderRadius: 6, fontSize: 9, fontWeight: 700, cursor: "pointer", border: "1px solid " + P.border, background: "#FFF", color: P.textM }}>📋 Auf alle Tage</button>}
+                      </div>
+                      {!d.closed && <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
+                        {d.slots.map((sl, si) => (<div key={si} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <select value={sl.open} onChange={(e) => { const s = [...ds]; s[i] = { ...s[i], slots: s[i].slots.map((x, k) => k === si ? { ...x, open: e.target.value } : x) }; update("delivery_schedule", s); }} style={{ padding: "3px 6px", borderRadius: 6, border: "1px solid #93C5FD", fontSize: 12, background: "#FFF" }}>{TIMES.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                          <span style={{ fontSize: 12, color: P.textM }}>–</span>
+                          <select value={sl.close} onChange={(e) => { const s = [...ds]; s[i] = { ...s[i], slots: s[i].slots.map((x, k) => k === si ? { ...x, close: e.target.value } : x) }; update("delivery_schedule", s); }} style={{ padding: "3px 6px", borderRadius: 6, border: "1px solid #93C5FD", fontSize: 12, background: "#FFF" }}>{TIMES.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                          {d.slots.length > 1 && <button onClick={() => { const s = [...ds]; s[i] = { ...s[i], slots: s[i].slots.filter((_, k) => k !== si) }; update("delivery_schedule", s); }} style={{ width: 22, height: 22, borderRadius: 6, border: "none", background: "#FFF0F3", color: "#FF8FA3", fontSize: 11, cursor: "pointer" }}>✕</button>}
+                        </div>))}
+                        {d.slots.length < 3 && <button onClick={() => { const s = [...ds]; s[i] = { ...s[i], slots: [...s[i].slots, { open: "17:00", close: "22:00" }] }; update("delivery_schedule", s); }} style={{ padding: "3px 10px", borderRadius: 6, border: "1px dashed #93C5FD", background: "transparent", color: "#1D6FA5", fontSize: 10, fontWeight: 700, cursor: "pointer", alignSelf: "flex-start" }}>+ Zeitspanne</button>}
+                      </div>}
+                    </div>);
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Logo */}
             <div style={{ borderTop: "1px solid " + P.border, paddingTop: 16, marginTop: 4 }}>
               <div style={{ fontSize: 16, fontWeight: 800, color: P.text, marginBottom: 12 }}>🖼️ Logo / Foto</div>
               <input type="file" accept="image/*" id="imgUploadDash" onChange={(e) => { if (e.target.files[0]) setImageFile(e.target.files[0]); }} style={{ display: "none" }} />
@@ -335,14 +385,12 @@ export default function DashboardPage() {
               <button onClick={() => fRef.current?.click()} style={{ padding: "10px 18px", borderRadius: 100, border: "1.5px dashed " + P.border, background: "transparent", color: P.accent, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{restaurant.pdf_url ? "📄 Neue PDF" : "📄 PDF hochladen"}</button>
             </div>
 
-            {/* Speichern */}
             <button onClick={handleSave} disabled={saving} style={{ width: "100%", padding: 16, fontSize: 15, fontWeight: 700, background: P.accent, color: "#FFF", borderRadius: 100, border: "none", cursor: saving ? "wait" : "pointer", opacity: saving ? 0.6 : 1, marginTop: 8 }}>
               {saving ? "Wird gespeichert..." : "💾 Alle Änderungen speichern"}
             </button>
           </div>
         </div>
 
-        {/* Info */}
         <div style={{ padding: "16px 20px", background: P.card, borderRadius: 14, border: "1px solid " + P.border, fontSize: 13, color: P.textM, lineHeight: 1.6 }}>
           <strong style={{ color: P.text }}>💡 Tipp:</strong> Nach jeder Änderung "Alle Änderungen speichern" klicken. Änderungen sind sofort live, sobald dein Profil freigegeben ist.
           <div style={{ marginTop: 8, fontSize: 12 }}>Eingeloggt als <strong style={{ color: P.text }}>{user?.email}</strong></div>
