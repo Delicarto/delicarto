@@ -147,13 +147,13 @@ export default function App(){
   const doSearch=()=>{if(plzSearch.length>=4){setShowSugg(false);setSearching(true);setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}};
 
   const[rStep,setRStep]=useState(1);
-  const[rData,setRD]=useState({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",sched:DS.map(d=>({...d})),min:"",zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null});
+  const[rData,setRD]=useState({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",sched:DS.map(d=>({...d})),min:"",zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,logo:null});
   const[rOk,setROk]=useState(false);
   const[dStep,setDStep]=useState(1);
   const[dData,setDD]=useState({name:"",phone:"",email:"",notes:"",pkg:"profi",photos:null});
   const[dOk,setDOk]=useState(false);
   const[modal,setModal]=useState(null);
-  const fRef=useRef(null),diRef=useRef(null);
+  const fRef=useRef(null),diRef=useRef(null),logoRef=useRef(null);
 
   const[authMode,setAuthMode]=useState("landing");
   const[authEmail,setAuthEmail]=useState("");
@@ -248,7 +248,7 @@ export default function App(){
     return l;
   })();
 
-  const resetR=()=>{setRStep(1);setRD({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",sched:DS.map(d=>({...d})),min:"",zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null});setROk(false);};
+  const resetR=()=>{setRStep(1);setRD({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",sched:DS.map(d=>({...d})),min:"",zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,logo:null});setROk(false);};
   const resetD=()=>{setModal(null);setDStep(1);setDD({name:"",phone:"",email:"",notes:"",pkg:"profi",photos:null});setDOk(false);};
 
   const submitR=async()=>{
@@ -258,6 +258,15 @@ export default function App(){
       const{data:fileData,error:fileErr}=await supabase.storage.from("menus").upload(fileName,rData.file);
       if(fileErr)throw fileErr;
       const{data:{publicUrl}}=supabase.storage.from("menus").getPublicUrl(fileName);
+
+      let logoUrl=null;
+      if(rData.logo){
+        const logoFileName=`${Date.now()}-${rData.logo.name}`;
+        const{data:logoData,error:logoErr}=await supabase.storage.from("logos").upload(logoFileName,rData.logo);
+        if(logoErr)throw logoErr;
+        const{data:{publicUrl:logoPublicUrl}}=supabase.storage.from("logos").getPublicUrl(logoFileName);
+        logoUrl=logoPublicUrl;
+      }
 
       const{data:restaurant,error:restErr}=await supabase.from("restaurants").insert({
         name:rData.name,
@@ -271,6 +280,7 @@ export default function App(){
         min_order:rData.min||null,
         pdf_url:publicUrl,
         pdf_name:rData.file.name,
+        image_url:logoUrl,
         color:CC[Math.floor(Math.random()*CC.length)],
         owner_id:user.id,
         is_premium:selPkg==="premium"
@@ -769,14 +779,25 @@ export default function App(){
           </div>}
 
           {rStep===4&&<div style={{animation:"fadeUp 0.2s ease"}}>
-            <h3 style={{fontSize:18,fontWeight:800,marginBottom:16}}>4. Speisekarte hochladen</h3>
+            <h3 style={{fontSize:18,fontWeight:800,marginBottom:16}}>4. Speisekarte & Logo</h3>
+
+            <label style={{fontSize:11,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:8}}>Speisekarte als PDF *</label>
             <input type="file" accept=".pdf" ref={fRef} onChange={e=>{const f=e.target.files[0];if(f)setRD({...rData,file:f});}} style={{display:"none"}}/>
-            {!rData.file?<div className="uz" onClick={()=>fRef.current?.click()} style={{border:`2px dashed ${P.border}`,borderRadius:18,padding:"48px 20px",textAlign:"center",background:"#FFF"}}>
-              <div style={{fontSize:52,marginBottom:14}}>📄</div>
-              <h3 style={{fontSize:18,fontWeight:800,marginBottom:6}}>PDF hier hochladen</h3>
-              <p style={{color:P.textM,fontSize:14,marginBottom:16}}>Klicke hier oder ziehe deine Speisekarte rein</p>
-              <div style={{padding:"12px 16px",background:`${P.accent}30`,borderRadius:12,fontSize:13,fontWeight:600,color:P.accent,display:"inline-block"}}>📸 Kein PDF? <span style={{textDecoration:"underline",cursor:"pointer"}} onClick={e=>{e.stopPropagation();setModal("digi");}}>Digitalisierung ab 29€</span></div>
-            </div>:(<div style={{background:"#E8FFF3",borderRadius:14,padding:"18px",display:"flex",alignItems:"center",gap:12,border:"1px solid #A7F3D0"}}><span style={{fontSize:22}}>✅</span><div style={{flex:1,minWidth:0}}><div style={{fontSize:14,fontWeight:700,color:"#1B5E3B"}}>Hochgeladen</div><div style={{fontSize:12,color:P.textM,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{rData.file.name}</div></div><button onClick={()=>setRD({...rData,file:null})} style={{background:"none",border:"none",cursor:"pointer",fontSize:16,color:P.textM}}>✕</button></div>)}
+            {!rData.file?<div className="uz" onClick={()=>fRef.current?.click()} style={{border:`2px dashed ${P.border}`,borderRadius:18,padding:"36px 20px",textAlign:"center",background:"#FFF",marginBottom:16}}>
+              <div style={{fontSize:42,marginBottom:10}}>📄</div>
+              <h3 style={{fontSize:16,fontWeight:800,marginBottom:4}}>PDF hier hochladen</h3>
+              <p style={{color:P.textM,fontSize:13,marginBottom:14}}>Klicke hier oder ziehe deine Speisekarte rein</p>
+              <div style={{padding:"10px 14px",background:`${P.accent}30`,borderRadius:12,fontSize:12,fontWeight:600,color:P.accent,display:"inline-block"}}>📸 Kein PDF? <span style={{textDecoration:"underline",cursor:"pointer"}} onClick={e=>{e.stopPropagation();setModal("digi");}}>Digitalisierung ab 29€</span></div>
+            </div>:(<div style={{background:"#E8FFF3",borderRadius:14,padding:"16px",display:"flex",alignItems:"center",gap:12,border:"1px solid #A7F3D0",marginBottom:16}}><span style={{fontSize:22}}>✅</span><div style={{flex:1,minWidth:0}}><div style={{fontSize:14,fontWeight:700,color:"#1B5E3B"}}>PDF hochgeladen</div><div style={{fontSize:12,color:P.textM,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{rData.file.name}</div></div><button onClick={()=>setRD({...rData,file:null})} style={{background:"none",border:"none",cursor:"pointer",fontSize:16,color:P.textM}}>✕</button></div>)}
+
+            <label style={{fontSize:11,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:8}}>Logo (optional) <span style={{fontWeight:500,textTransform:"none",letterSpacing:0,color:"#A0A890"}}>— PNG oder JPG, max. 2MB</span></label>
+            <input type="file" accept="image/*" ref={logoRef} onChange={e=>{const f=e.target.files[0];if(f)setRD({...rData,logo:f});}} style={{display:"none"}}/>
+            {!rData.logo?<div className="uz" onClick={()=>logoRef.current?.click()} style={{border:`2px dashed ${P.border}`,borderRadius:18,padding:"28px 20px",textAlign:"center",background:"#FFF"}}>
+              <div style={{fontSize:36,marginBottom:8}}>🖼️</div>
+              <h3 style={{fontSize:14,fontWeight:800,marginBottom:4}}>Logo hochladen</h3>
+              <p style={{color:P.textM,fontSize:12}}>PNG mit transparentem Hintergrund sieht am besten aus</p>
+            </div>:(<div style={{background:"#E8FFF3",borderRadius:14,padding:"16px",display:"flex",alignItems:"center",gap:12,border:"1px solid #A7F3D0"}}><div style={{width:48,height:48,borderRadius:10,background:"#FFF",border:`1.5px solid ${P.border}`,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><img src={URL.createObjectURL(rData.logo)} alt="Logo Vorschau" style={{width:"100%",height:"100%",objectFit:"contain"}}/></div><div style={{flex:1,minWidth:0}}><div style={{fontSize:14,fontWeight:700,color:"#1B5E3B"}}>Logo hochgeladen</div><div style={{fontSize:12,color:P.textM,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{rData.logo.name}</div></div><button onClick={()=>setRD({...rData,logo:null})} style={{background:"none",border:"none",cursor:"pointer",fontSize:16,color:P.textM}}>✕</button></div>)}
+
             <div style={{display:"flex",gap:8,marginTop:22}}><button className="btn2" onClick={()=>setRStep(3)} style={{flex:1,padding:14,fontSize:14,fontWeight:700,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,color:P.textM}}>← Zurück</button><button className="btn" onClick={submitR} disabled={!rData.file} style={{flex:2,padding:14,fontSize:15,fontWeight:700,background:rData.file?P.text:"#E5DDD0",color:rData.file?"#FFF":"#A0A890",borderRadius:100,cursor:rData.file?"pointer":"not-allowed"}}>✨ Veröffentlichen</button></div>
           </div>}
         </>)}
