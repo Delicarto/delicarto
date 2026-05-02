@@ -56,6 +56,16 @@ function getAddr(r){return `${r.street} ${r.nr}, ${r.plz} ${r.city}`;}
 function findZone(r,plz){if(!plz||!r.zones)return null;return r.zones.find(z=>z.plz===plz)||null;}
 function deliversTo(r,plz){return!!findZone(r,plz);}
 
+// Tagesrotation: Premium-Restaurants werden jeden Tag in anderer Reihenfolge angezeigt.
+// Das ist fair (jeder ist mal oben) und konsistent (innerhalb des Tages bleibt die Reihenfolge).
+function dayRotate(arr){
+  if(!arr||arr.length<=1)return arr;
+  const today=new Date();
+  const dayOfYear=Math.floor((today-new Date(today.getFullYear(),0,0))/86400000);
+  const offset=dayOfYear%arr.length;
+  return[...arr.slice(offset),...arr.slice(0,offset)];
+}
+
 const Inp=({label,ph,val,onChange,w})=>(<div style={{width:w||"100%"}}><label style={{fontSize:11,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:6}}>{label}</label><input type="text" placeholder={ph} value={val} onChange={onChange} style={{width:"100%",padding:"14px 16px",fontSize:15,fontWeight:500,border:`1.5px solid ${P.border}`,borderRadius:12,background:"#FFF",color:P.text,fontFamily:"inherit"}}/></div>);
 
 const Overlay=({children,onClose})=>(<div style={{position:"fixed",inset:0,background:"rgba(27,42,29,0.4)",backdropFilter:"blur(12px)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:16,animation:"fadeUp 0.25s ease"}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}><div style={{background:P.card,borderRadius:24,width:"100%",maxWidth:600,maxHeight:"92vh",overflow:"auto",animation:"scaleIn 0.3s ease",boxShadow:"0 25px 80px rgba(27,42,29,0.2)"}}>{children}</div></div>);
@@ -85,6 +95,7 @@ const SchedEdit=({schedule,onChange})=>{
 };
 const SchedShow=({schedule})=>{const g=schedSum(schedule);if(!Array.isArray(g))return (<span>{g}</span>);return (<div style={{display:"flex",flexDirection:"column",gap:4}}>{g.map((x,i)=>(<div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:i<g.length-1?`1px solid ${P.border}`:"none"}}><span style={{fontSize:14,fontWeight:600,color:P.textM}}>{x.days}</span>{x.closed?<span style={{fontSize:12,fontWeight:700,color:"#FF8FA3",background:"#FFF0F3",padding:"2px 10px",borderRadius:6}}>Ruhetag</span>:<span style={{fontSize:14,fontWeight:700,color:P.text}}>{x.text}</span>}</div>))}</div>);};
 
+/* Zone Editor for business registration */
 const ZoneEditor=({zones,onChange})=>{
   const add=()=>onChange([...zones,{name:"",plz:"",cost:"0€"}]);
   const upd=(i,f,v)=>onChange(zones.map((z,j)=>j===i?{...z,[f]:v}:z));
@@ -106,7 +117,7 @@ function useInView(ref){const[v,setV]=useState(false);useEffect(()=>{if(!ref.cur
 const Reveal=({children,style,id})=>{const r=useRef(null);const v=useInView(r);return (<div ref={r} id={id} style={{opacity:v?1:0,transform:v?"translateY(0)":"translateY(30px)",transition:"all 0.7s cubic-bezier(0.22,1,0.36,1)",...style}}>{children}</div>);};
 
 export default function App(){
-  const[page,setPage]=useState("home");
+  const[page,setPage]=useState("home"); // "home" | "register" | "impressum" | "datenschutz"
   const[rests,setRests]=useState([]);
   const[loading,setLoading]=useState(true);
   const[plzSearch,setPlzSearch]=useState("");
@@ -125,9 +136,11 @@ export default function App(){
   const[plzSuggestions,setPlzSuggestions]=useState([]);
   const[showSugg,setShowSugg]=useState(false);
 
+  // Check cookie consent on mount
   useEffect(()=>{if(typeof window!=="undefined"&&localStorage.getItem("dc_cookies")==="ok")setCookieOk(true);},[]);
   const acceptCookies=()=>{setCookieOk(true);if(typeof window!=="undefined")localStorage.setItem("dc_cookies","ok");};
 
+  // PLZ autocomplete
   useEffect(()=>{
     if(plzSearch.length>=3&&plzSearch.length<5){
       const t=setTimeout(async()=>{
@@ -146,15 +159,17 @@ export default function App(){
   const selectPlz=(plz)=>{setPlzSearch(plz);setShowSugg(false);setSearching(true);setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);};
   const doSearch=()=>{if(plzSearch.length>=4){setShowSugg(false);setSearching(true);setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}};
 
+  // Register state
   const[rStep,setRStep]=useState(1);
-  const[rData,setRD]=useState({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",sched:DS.map(d=>({...d})),min:"",zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,logo:null});
+  const[rData,setRD]=useState({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",sched:DS.map(d=>({...d})),min:"",zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null});
   const[rOk,setROk]=useState(false);
   const[dStep,setDStep]=useState(1);
   const[dData,setDD]=useState({name:"",phone:"",email:"",notes:"",pkg:"profi",photos:null});
   const[dOk,setDOk]=useState(false);
   const[modal,setModal]=useState(null);
-  const fRef=useRef(null),diRef=useRef(null),logoRef=useRef(null);
+  const fRef=useRef(null),diRef=useRef(null);
 
+  // Auth state
   const[authMode,setAuthMode]=useState("landing");
   const[authEmail,setAuthEmail]=useState("");
   const[authPass,setAuthPass]=useState("");
@@ -164,9 +179,11 @@ export default function App(){
   const[user,setUser]=useState(null);
   const[selPkg,setSelPkg]=useState("kostenlos");
 
+  // Load restaurants from Supabase
   const loadRestaurants=async()=>{
     const{data:restaurants,error}=await supabase.from("restaurants").select("*");
     if(error){console.error(error);setLoading(false);return;}
+    // Load zones for each restaurant
     const{data:zones}=await supabase.from("delivery_zones").select("*");
     const merged=restaurants.map(r=>({
       ...r,
@@ -186,6 +203,7 @@ export default function App(){
     setLoading(false);
   };
 
+  // Check auth on mount
   useEffect(()=>{
     loadRestaurants();
     supabase.auth.getSession().then(({data:{session}})=>{
@@ -198,6 +216,7 @@ export default function App(){
     return()=>subscription.unsubscribe();
   },[]);
 
+  // Real Supabase Auth
   const doRegister=async()=>{
     if(!authEmail||!authPass||!authName){setAuthErr("Bitte alle Felder ausfüllen.");return;}
     if(authPass.length<6){setAuthErr("Passwort muss mindestens 6 Zeichen haben.");return;}
@@ -227,6 +246,7 @@ export default function App(){
 
   const openDetail=(r)=>{
     setSelRest(r);setViewed(prev=>[r,...prev.filter(x=>x.id!==r.id)].slice(0,4));
+    // Count view in database
     supabase.from("restaurants").update({views:(r.views||0)+1}).eq("id",r.id).then(()=>{});
   };
 
@@ -242,32 +262,26 @@ export default function App(){
     setLocLoad(false);
   },()=>{setLocLoad(false);alert("Standort konnte nicht ermittelt werden. Bitte PLZ manuell eingeben.");},{enableHighAccuracy:true,timeout:10000}):(()=>{setLocLoad(false);alert("Standort wird von deinem Browser nicht unterstützt.");})();};
 
+  // Filter: by PLZ (delivery zone), by text search, by category
   const filtered=(()=>{let l=[...rests];
     if(searching&&plzSearch.length>=4){l=l.filter(r=>r.zones.some(z=>z.plz.startsWith(plzSearch)));}
     l=l.filter(r=>{const cs=r.cats.join(" ").toLowerCase();const m=r.name.toLowerCase().includes(search.toLowerCase())||cs.includes(search.toLowerCase());return m&&(selCat==="Alle"||r.cats.includes(selCat));});
     return l;
   })();
 
-  const resetR=()=>{setRStep(1);setRD({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",sched:DS.map(d=>({...d})),min:"",zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null,logo:null});setROk(false);};
+  const resetR=()=>{setRStep(1);setRD({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",sched:DS.map(d=>({...d})),min:"",zones:[{name:"",plz:"",cost:"0€",minOrder:""}],file:null});setROk(false);};
   const resetD=()=>{setModal(null);setDStep(1);setDD({name:"",phone:"",email:"",notes:"",pkg:"profi",photos:null});setDOk(false);};
 
   const submitR=async()=>{
     if(!rData.name||!rData.file||rData.cats.length===0||rData.zones.length===0||!user)return;
     try{
+      // 1. Upload PDF to Supabase Storage
       const fileName=`${Date.now()}-${rData.file.name}`;
       const{data:fileData,error:fileErr}=await supabase.storage.from("menus").upload(fileName,rData.file);
       if(fileErr)throw fileErr;
       const{data:{publicUrl}}=supabase.storage.from("menus").getPublicUrl(fileName);
 
-      let logoUrl=null;
-      if(rData.logo){
-        const logoFileName=`${Date.now()}-${rData.logo.name}`;
-        const{data:logoData,error:logoErr}=await supabase.storage.from("logos").upload(logoFileName,rData.logo);
-        if(logoErr)throw logoErr;
-        const{data:{publicUrl:logoPublicUrl}}=supabase.storage.from("logos").getPublicUrl(logoFileName);
-        logoUrl=logoPublicUrl;
-      }
-
+      // 2. Insert restaurant
       const{data:restaurant,error:restErr}=await supabase.from("restaurants").insert({
         name:rData.name,
         categories:rData.cats,
@@ -280,13 +294,13 @@ export default function App(){
         min_order:rData.min||null,
         pdf_url:publicUrl,
         pdf_name:rData.file.name,
-        image_url:logoUrl,
         color:CC[Math.floor(Math.random()*CC.length)],
         owner_id:user.id,
         is_premium:selPkg==="premium"
       }).select().single();
       if(restErr)throw restErr;
 
+      // 3. Insert delivery zones
       const validZones=rData.zones.filter(z=>z.name&&z.plz);
       if(validZones.length>0){
         const{error:zoneErr}=await supabase.from("delivery_zones").insert(
@@ -301,6 +315,7 @@ export default function App(){
         if(zoneErr)throw zoneErr;
       }
 
+      // 4. Reload and show success
       await loadRestaurants();
       setROk(true);
     }catch(err){
@@ -309,12 +324,16 @@ export default function App(){
     }
   };
 
+  // ═══════════════════════════════════════════
+  // HOME PAGE (Customer view)
+  // ═══════════════════════════════════════════
   if(page==="home")return(
     <div style={{fontFamily:"system-ui,-apple-system,'Segoe UI',sans-serif",background:P.heroBg,color:P.text,overflowX:"hidden",minHeight:"100vh"}}>
       <style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}input,select,textarea{font-family:inherit}::placeholder{color:#A0A890}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}@keyframes scaleIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .card{transition:all 0.25s ease;cursor:pointer;border:1.5px solid ${P.border}}.card:hover{border-color:#B8C9B0;box-shadow:0 12px 40px rgba(27,42,29,0.06);transform:translateY(-4px)}.pill{transition:all 0.15s ease;cursor:pointer;white-space:nowrap}.pill:hover{opacity:0.85}.btn{transition:all 0.2s ease;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px}.btn:hover{transform:translateY(-1px)}.btn:active{transform:scale(0.98)}.btn2{transition:all 0.2s ease;cursor:pointer;font-family:inherit}.btn2:hover{background:#F0EBE0}.clift{transition:all 0.25s ease}.clift:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(27,42,29,0.06)}input:focus,select:focus{outline:none;border-color:${P.accent};box-shadow:0 0 0 3px rgba(45,106,79,0.15)}::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#C4B9A5;border-radius:3px}@media(max-width:768px){.nav-links{display:none!important}.mmb{display:flex!important}}`}</style>
 
+      {/* NAV */}
       <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,background:searching||selRest?"rgba(245,240,232,0.95)":"rgba(0,0,0,0.15)",backdropFilter:"blur(12px)",borderBottom:searching||selRest?`1px solid ${P.border}`:"none"}}>
         <div style={{maxWidth:1100,margin:"0 auto",padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{cursor:"pointer"}} onClick={()=>{setSelRest(null);setPlzSearch("");setSearch("");setSearching(false);window.scrollTo({top:0,behavior:"smooth"});}}><Logo h={26} light={!searching&&!selRest}/></div>
@@ -328,6 +347,7 @@ export default function App(){
         {mMenu&&<div style={{padding:"8px 24px 20px",borderTop:`1px solid ${searching||selRest?P.border:"rgba(255,255,255,0.1)"}`}}><a href="#how" onClick={()=>setMMenu(false)} style={{display:"block",color:searching||selRest?P.textM:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:15,fontWeight:600,padding:"8px 0"}}>So funktioniert's</a><a href="#faq" onClick={()=>setMMenu(false)} style={{display:"block",color:searching||selRest?P.textM:"rgba(255,255,255,0.8)",textDecoration:"none",fontSize:15,fontWeight:600,padding:"8px 0"}}>FAQ</a><button className="btn" onClick={()=>{setMMenu(false);setPage("register");resetR();}} style={{background:searching||selRest?P.accent:"transparent",color:"#FFF",borderRadius:100,padding:"12px",width:"100%",marginTop:8,fontSize:14,fontWeight:700,border:searching||selRest?"none":"1.5px solid rgba(255,255,255,0.4)"}}>+ Lieferdienst eintragen</button></div>}
       </nav>
 
+      {/* HERO — big when no search, small bar when searching */}
       {!searching&&!selRest?(
       <div style={{position:"relative",overflow:"hidden",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
         <div style={{position:"absolute",inset:0,zIndex:0}}>
@@ -346,6 +366,7 @@ export default function App(){
                 Suchen
               </button>
             </div>
+            {/* PLZ Suggestions Dropdown */}
             {showSugg&&plzSuggestions.length>0&&<div style={{position:"absolute",top:"100%",left:0,right:0,marginTop:6,background:"#FFF",borderRadius:16,boxShadow:"0 12px 40px rgba(0,0,0,0.25)",overflow:"hidden",zIndex:10}}>
               {plzSuggestions.map((s,i)=>(<div key={i} onClick={()=>selectPlz(s.plz)} style={{padding:"14px 20px",display:"flex",alignItems:"center",gap:10,cursor:"pointer",borderBottom:i<plzSuggestions.length-1?"1px solid #F0EBE0":"none",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background="#F8F6F2"} onMouseLeave={e=>e.currentTarget.style.background="#FFF"}>
                 <span style={{color:P.accent,fontSize:16}}>📍</span>
@@ -361,6 +382,7 @@ export default function App(){
         </div>
       </div>
       ):(
+      /* Small search bar when results or detail */
       <div style={{paddingTop:70,background:P.heroBg,borderBottom:`1px solid ${P.border}`}}>
         <div style={{maxWidth:1100,margin:"0 auto",padding:"16px 24px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
           {selRest&&<button className="btn2" onClick={()=>setSelRest(null)} style={{background:"transparent",border:`1.5px solid ${P.border}`,borderRadius:100,padding:"8px 16px",fontSize:13,fontWeight:700,color:P.textM}}>← Zurück</button>}
@@ -383,18 +405,23 @@ export default function App(){
       </div>
       )}
 
+      {/* RESULTS */}
       <div ref={appRef} id="app" style={{maxWidth:1100,margin:"0 auto",padding:"24px 24px 60px"}}>
         {!selRest?(<>
           {searching&&plzSearch.length>=4?(<>
+          {/* Text search */}
           <div style={{marginBottom:16}}><input type="text" placeholder="🔍 Zusätzlich nach Name oder Küche filtern…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:"100%",maxWidth:400,padding:"12px 16px",fontSize:14,fontWeight:500,border:`1.5px solid ${P.border}`,borderRadius:100,background:"#FFF",color:P.text}}/></div>
 
+          {/* Categories */}
           <div style={{position:"relative",marginBottom:18}}>
             <div ref={catRef} style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:6,WebkitOverflowScrolling:"touch"}}>{CATS.map(c=>(<div key={c} className="pill" onClick={()=>setSelCat(c)} style={{padding:"8px 16px",borderRadius:100,fontSize:13,fontWeight:700,background:selCat===c?P.text:P.card,color:selCat===c?"#FFF":P.textM,border:selCat===c?"none":`1.5px solid ${P.border}`,display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:14}}>{CE[c]}</span>{c}</div>))}</div>
             {showCatFade&&<div style={{position:"absolute",right:0,top:0,bottom:6,width:48,background:`linear-gradient(to right, transparent, ${P.heroBg})`,pointerEvents:"none"}}/>}
           </div>
 
+          {/* Recently viewed */}
           {viewed.length>0&&!search&&selCat==="Alle"&&(<div style={{marginBottom:24}}><div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🕐 Zuletzt angesehen</div><div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:6}}>{viewed.map(r=>{const z=plzSearch?findZone(r,plzSearch):null;return(<div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:190,background:P.card,borderRadius:14,padding:"14px 16px",border:`1.5px solid ${P.border}`,cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div style={{width:32,height:32,borderRadius:10,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{CE[r.cats[0]]}</div><div style={{fontSize:14,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div></div><div style={{display:"flex",gap:4}}><span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:isDelivering(r)?"#E8FFF3":"#FFF0F3",color:isDelivering(r)?"#1B5E3B":"#C4314B"}}>{isDelivering(r)?"Lieferung möglich":"Keine Lieferung"}</span>{z&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>{z.cost}</span>}</div></div>);})}</div></div>)}
 
+          {/* NEW ENTRIES SLIDER */}
           {!search&&selCat==="Alle"&&viewed.length===0&&(()=>{const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70"};const newest=[...rests].sort((a,b)=>(b.added||"").localeCompare(a.added||"")).slice(0,5);return newest.length>0?(<div style={{marginBottom:28}}>
             <div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🆕 Neu auf DeliCarto</div>
             <div style={{display:"flex",gap:12,overflowX:"auto",paddingBottom:8,WebkitOverflowScrolling:"touch"}}>
@@ -417,24 +444,29 @@ export default function App(){
             </div>
           </div>):null;})()}
 
+          {/* Result count */}
           <div style={{fontSize:13,color:P.textM,marginBottom:14,fontWeight:600}}>
             {plzSearch.length>=4?`${filtered.length} Lieferdienste liefern zu PLZ ${plzSearch}`:`${filtered.length} Lieferdienste`}
             {plzSearch.length>0&&plzSearch.length<4&&<span style={{color:"#BC6C25"}}> — Bitte gib mindestens 4 Ziffern ein</span>}
           </div>
 
-          {(()=>{const premFiltered=filtered.filter(r=>r.prem);const regFiltered=filtered.filter(r=>!r.prem);
+          {/* PREMIUM SECTION — separate from regular results */}
+          {(()=>{const premFiltered=dayRotate(filtered.filter(r=>r.prem));const regFiltered=filtered.filter(r=>!r.prem);
 
           const RestCard=({r,i,isPrem})=>{const op=isDelivering(r),th=delivTodayH(r),z=plzSearch?findZone(r,plzSearch):null;
+            // Default images per category
             const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Vietnamesisch":"https://images.unsplash.com/photo-1555126634-323283e090fa?w=400&q=70","Japanisch":"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&q=70","Indisch":"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=70","Griechisch":"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70","Chinesisch":"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=70","Mexikanisch":"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70"};
             const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";
             return(
             <div key={r.id} className="card" onClick={()=>openDetail(r)} style={{background:P.card,borderRadius:16,overflow:"hidden",animation:`fadeUp 0.4s ease ${i*0.04}s both`,position:"relative",border:isPrem?`2px solid ${P.accent}40`:`1.5px solid ${P.border}`}}>
+              {/* Image */}
               <div style={{height:160,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
                 <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
                 {(()=>{const ds=r.delivSched||r.sched;const d=ds?.[DIM[new Date().getDay()]];if(d&&d.closed)return <div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.75)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Heute Ruhetag</div>;if(!op)return <div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.75)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Geschlossen</div>;const now=new Date().getHours()*60+new Date().getMinutes();let closeTime="";if(d&&d.slots){for(const sl of d.slots){const[ch,cm]=sl.close.split(":").map(Number);const c=ch*60+cm;const[oh,om]=sl.open.split(":").map(Number);const o=oh*60+om;if(c<=o?(now>=o||now<=c):(now>=o&&now<=c)){closeTime=sl.close;break;}}}return <div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.75)",color:"#FFF",textAlign:"center",fontSize:12,fontWeight:700,padding:"6px"}}>Geöffnet bis {closeTime} Uhr</div>;})()}
                 {isPrem&&r.dailySpecial&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(45,106,79,0.9)",color:"#FFF",fontSize:10,fontWeight:700,padding:"4px 12px",borderRadius:100,display:"flex",alignItems:"center",gap:4}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg>Angebote</div>}
                 {r.imageUrl&&<div style={{position:"absolute",bottom:10,right:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
               </div>
+              {/* Info */}
               <div style={{padding:"14px 16px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"start",marginBottom:4}}>
                   <h3 style={{fontSize:16,fontWeight:800,lineHeight:1.2}}>{r.name}</h3>
@@ -464,6 +496,7 @@ export default function App(){
               </div>
             </div>)}
 
+            {/* REGULAR RESULTS */}
             {regFiltered.length>0&&(<>
               {premFiltered.length>0&&<div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:12}}>Alle Ergebnisse</div>}
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))",gap:16}}>
@@ -475,14 +508,17 @@ export default function App(){
           {filtered.length===0&&plzSearch.length>=4&&(<div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:48,marginBottom:12}}>😕</div><h3 style={{fontSize:20,fontWeight:800,marginBottom:10}}>Noch kein Lieferdienst für PLZ {plzSearch}</h3><p style={{color:P.textM,fontSize:14,marginBottom:20}}>Kennst du einen? Schlage ihn vor oder trage ihn selbst ein!</p><button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:P.text,color:"#FFF",borderRadius:100,padding:"12px 28px",fontSize:14,fontWeight:700}}>Lieferdienst eintragen</button></div>)}
         </>):null}
         </>):(
+          /* DETAIL VIEW */
           (()=>{const dlv=isDelivering(selRest),z=plzSearch?findZone(selRest,plzSearch):null;
             const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=800&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&q=70"};
             const heroImg=defImgs[selRest.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=70";
           return(<div style={{animation:"fadeUp 0.3s ease"}}>
 
+            {/* Hero Image */}
             <div style={{borderRadius:20,overflow:"hidden",marginBottom:24,position:"relative",height:220,background:"#E8E0D4"}}>
               <img src={heroImg} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
               <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)"}}/>
+              {/* Logo overlay */}
               <div style={{position:"absolute",bottom:16,left:20,display:"flex",alignItems:"end",gap:14}}>
                 <div style={{width:64,height:64,borderRadius:16,background:"#FFF",boxShadow:"0 4px 16px rgba(0,0,0,0.2)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:selRest.imageUrl?3:0,fontSize:30,flexShrink:0}}>
                   {selRest.imageUrl?<img src={selRest.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:(CE[selRest.cats[0]]||"🍽️")}
@@ -492,10 +528,12 @@ export default function App(){
                   <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{selRest.cats.map(c=>(<span key={c} style={{fontSize:10,color:"#FFF",fontWeight:600,background:"rgba(255,255,255,0.2)",backdropFilter:"blur(4px)",padding:"2px 8px",borderRadius:100}}>{CE[c]} {c}</span>))}</div>
                 </div>
               </div>
+              {/* Status badge */}
               <div style={{position:"absolute",top:16,right:16}}><span style={{fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:100,background:dlv?"rgba(52,211,153,0.9)":"rgba(255,143,163,0.9)",color:"#FFF"}}>{dlv?"Lieferung möglich":"Geschlossen"}</span></div>
               {selRest.prem&&<div style={{position:"absolute",top:16,left:16,background:"rgba(45,106,79,0.9)",color:"#FFF",fontSize:11,fontWeight:800,padding:"4px 12px",borderRadius:100}}>⭐ Premium</div>}
             </div>
 
+            {/* Action Buttons */}
             <div style={{display:"flex",gap:8,marginBottom:24,flexWrap:"wrap"}}>
               {selRest.phone&&<a href={`tel:${selRest.phone}`} className="btn" style={{flex:1,minWidth:90,background:P.accent,color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center",gap:6}}>📞 Anrufen</a>}
               {selRest.prem&&selRest.whatsapp&&<a href={`https://wa.me/${selRest.whatsapp.replace(/[^0-9]/g,"")}`} target="_blank" rel="noopener" className="btn" style={{flex:1,minWidth:90,background:"#25D366",color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</a>}
@@ -503,6 +541,7 @@ export default function App(){
               {selRest.prem&&selRest.website&&<a href={selRest.website.startsWith("http")?selRest.website:`https://${selRest.website}`} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:90,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>🌐 Website</a>}
             </div>
 
+            {/* Info Grid */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))",gap:12,marginBottom:24}}>
               <div style={{background:P.card,borderRadius:14,padding:"16px",border:`1.5px solid ${P.border}`}}>
                 <div style={{fontSize:11,color:P.textM,fontWeight:600,marginBottom:6}}>📍 Adresse</div>
@@ -518,6 +557,7 @@ export default function App(){
               </div>
             </div>
 
+            {/* Delivery Zones */}
             <div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
               <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:14,display:"flex",alignItems:"center",gap:6}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Liefergebiete & Kosten</div>
               <div style={{display:"grid",gap:8}}>
@@ -533,21 +573,25 @@ export default function App(){
               </div>
             </div>
 
+            {/* Daily Special */}
             {selRest.prem&&selRest.dailySpecial&&<div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.accent}40`}}>
               <div style={{fontSize:13,fontWeight:800,color:"#2D6A4F",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" strokeWidth="2" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5" fill="#2D6A4F"/></svg>Tagesangebote</div>
               <div style={{fontSize:14,fontWeight:600,color:"#8B4513",whiteSpace:"pre-line",lineHeight:1.7}}>{selRest.dailySpecial}</div>
             </div>}
 
+            {/* Delivery Times */}
             <div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
               <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Lieferzeiten</div>
               <SchedShow schedule={selRest.delivSched||selRest.sched}/>
             </div>
 
+            {/* Opening Hours - only show if different from delivery */}
             {selRest.delivSched&&<div style={{background:P.card,borderRadius:16,padding:"20px",marginBottom:24,border:`1.5px solid ${P.border}`}}>
               <div style={{fontSize:13,fontWeight:800,color:P.text,marginBottom:10}}>Öffnungszeiten (Laden / Abholung)</div>
               <SchedShow schedule={selRest.sched}/>
             </div>}
 
+            {/* PDF Viewer */}
             {selRest.pdfUrl?(<div style={{background:P.card,borderRadius:16,overflow:"hidden",marginBottom:24,border:`1.5px solid ${P.border}`}}>
               <div style={{padding:"16px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${P.border}`}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:20}}>📄</span><div><div style={{fontSize:14,fontWeight:700}}>Speisekarte</div><div style={{fontSize:11,color:P.textM}}>{selRest.pdfName}</div></div></div>
@@ -560,8 +604,82 @@ export default function App(){
         )}
       </div>
 
+      {/* Only show these sections on the landing page */}
       {!searching&&!selRest&&(<>
 
+      {/* ============ SEKTION 1: BELIEBTE LIEFERDIENSTE ============ */}
+      {rests.length>0&&(()=>{const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Vietnamesisch":"https://images.unsplash.com/photo-1555126634-323283e090fa?w=400&q=70","Japanisch":"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&q=70","Indisch":"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=70","Griechisch":"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70","Chinesisch":"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=70","Mexikanisch":"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70"};
+      const featuredPrem=dayRotate(rests.filter(r=>r.prem));
+      const featuredOther=[...rests.filter(r=>!r.prem)].sort((a,b)=>(b.added||"").localeCompare(a.added||""));
+      const featured=[...featuredPrem,...featuredOther].slice(0,4);
+      return featured.length>0?(<Reveal style={{padding:"80px 24px 60px",background:P.heroBg}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:40}}>
+            <span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"2px"}}>🔥 Live auf DeliCarto</span>
+            <h2 style={{fontSize:32,fontWeight:900,marginTop:8,letterSpacing:"-0.5px"}}>Beliebte Lieferdienste</h2>
+            <p style={{color:P.textM,fontSize:16,marginTop:8}}>Frisch eingetragen, sofort bestellbar.</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(240px, 1fr))",gap:20}}>
+            {featured.map((r,i)=>{const op=isDelivering(r);const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";const ds=r.delivSched||r.sched;const d=ds?.[DIM[new Date().getDay()]];let statusText="Geschlossen";if(d&&d.closed)statusText="Heute Ruhetag";else if(op){const now=new Date().getHours()*60+new Date().getMinutes();if(d&&d.slots){for(const sl of d.slots){const[ch,cm]=sl.close.split(":").map(Number);const c=ch*60+cm;const[oh,om]=sl.open.split(":").map(Number);const o=oh*60+om;if(c<=o?(now>=o||now<=c):(now>=o&&now<=c)){statusText=`Geöffnet bis ${sl.close} Uhr`;break;}}}}
+            return(<div key={r.id} className="card" onClick={()=>{setSearching(true);setPlzSearch("");setTimeout(()=>openDetail(r),100);}} style={{background:P.card,borderRadius:16,overflow:"hidden",cursor:"pointer",border:r.prem?`2px solid ${P.accent}40`:`1.5px solid ${P.border}`,animation:`fadeUp 0.4s ease ${i*0.05}s both`}}>
+              <div style={{height:140,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
+                <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                <div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.85)",color:"#FFF",textAlign:"center",fontSize:11,fontWeight:700,padding:"5px"}}>{statusText}</div>
+                {r.prem&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(45,106,79,0.95)",color:"#FFF",fontSize:9,fontWeight:800,padding:"3px 10px",borderRadius:100,letterSpacing:"0.5px"}}>⭐ PRO</div>}
+                {r.imageUrl&&<div style={{position:"absolute",bottom:10,right:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
+              </div>
+              <div style={{padding:"14px 16px"}}>
+                <div style={{fontSize:16,fontWeight:800,marginBottom:4}}>{r.name}</div>
+                <div style={{fontSize:12,color:P.textM,marginBottom:6}}>{r.cats.slice(0,2).join(", ")}</div>
+                <div style={{fontSize:12,color:P.textM}}>Min. {r.min} · {r.city}</div>
+                <div style={{color:P.accent,fontWeight:700,fontSize:13,marginTop:10,paddingTop:10,borderTop:`1px solid ${P.border}`}}>Zur Speisekarte →</div>
+              </div>
+            </div>);})}
+          </div>
+          {rests.length>4&&<div style={{textAlign:"center",marginTop:32}}><button onClick={()=>{setSearching(true);setPlzSearch("");setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}} className="btn2" style={{background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"14px 30px",fontSize:14,fontWeight:700,color:P.accent,cursor:"pointer"}}>Alle {rests.length} Lieferdienste anzeigen →</button></div>}
+        </div>
+      </Reveal>):null;})()}
+
+      {/* ============ SEKTION 2: KÜCHEN-KACHELN ============ */}
+      {rests.length>0&&(()=>{const counts={};rests.forEach(r=>{(r.cats||[]).forEach(c=>{counts[c]=(counts[c]||0)+1;});});const cuisineList=Object.entries(counts).filter(([c])=>c!=="Alle").sort((a,b)=>b[1]-a[1]).slice(0,8);
+      return cuisineList.length>0?(<Reveal style={{padding:"60px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:40}}>
+            <span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"2px"}}>Stöbern</span>
+            <h2 style={{fontSize:32,fontWeight:900,marginTop:8,letterSpacing:"-0.5px"}}>Worauf hast du Lust?</h2>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))",gap:16}}>
+            {cuisineList.map(([cuisine,count])=>(<div key={cuisine} onClick={()=>{setSelCat(cuisine);setSearching(true);setPlzSearch("");setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}} style={{background:P.card,borderRadius:18,padding:"24px 16px",textAlign:"center",border:`1.5px solid ${P.border}`,cursor:"pointer",transition:"all 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.borderColor=P.accent;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.borderColor=P.border;}}>
+              <div style={{fontSize:38,marginBottom:8}}>{CE[cuisine]||"🍽️"}</div>
+              <div style={{fontSize:14,fontWeight:800,marginBottom:2}}>{cuisine}</div>
+              <div style={{fontSize:11,color:P.textM,fontWeight:600}}>{count} Lieferdienst{count!==1?"e":""}</div>
+            </div>))}
+          </div>
+        </div>
+      </Reveal>):null;})()}
+
+      {/* ============ SEKTION 3: VERTRAUENS-ZAHLEN ============ */}
+      {rests.length>0&&(<Reveal style={{padding:"60px 24px",background:P.heroBg,borderTop:`1px solid ${P.border}`,borderBottom:`1px solid ${P.border}`}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:24,textAlign:"center"}}>
+            <div>
+              <div style={{fontSize:48,fontWeight:900,color:P.accent,letterSpacing:"-1px",lineHeight:1,marginBottom:8}}>{rests.length}</div>
+              <div style={{fontSize:13,color:P.textM,fontWeight:600,textTransform:"uppercase",letterSpacing:"1.5px"}}>Lieferdienste</div>
+            </div>
+            <div>
+              <div style={{fontSize:48,fontWeight:900,color:P.accent,letterSpacing:"-1px",lineHeight:1,marginBottom:8}}>{rests.filter(r=>r.pdfUrl).length}+</div>
+              <div style={{fontSize:13,color:P.textM,fontWeight:600,textTransform:"uppercase",letterSpacing:"1.5px"}}>Speisekarten</div>
+            </div>
+            <div>
+              <div style={{fontSize:48,fontWeight:900,color:P.accent,letterSpacing:"-1px",lineHeight:1,marginBottom:8}}>0%</div>
+              <div style={{fontSize:13,color:P.textM,fontWeight:600,textTransform:"uppercase",letterSpacing:"1.5px"}}>Provision</div>
+            </div>
+          </div>
+          <div style={{textAlign:"center",marginTop:32,fontSize:13,color:P.textM,fontWeight:600}}>Made in Germany · Direkt vom Lieferanten · {new Date().getFullYear()}</div>
+        </div>
+      </Reveal>)}
+
+      {/* SO FUNKTIONIERT'S */}
       <Reveal id="how" style={{padding:"80px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
         <div style={{maxWidth:1000,margin:"0 auto"}}>
           <div style={{textAlign:"center",marginBottom:48}}>
@@ -587,18 +705,39 @@ export default function App(){
         </div>
       </Reveal>
 
+      {/* FAQ */}
       <Reveal id="faq" style={{maxWidth:700,margin:"0 auto",padding:"60px 24px 80px"}}><h2 style={{fontSize:28,fontWeight:900,marginBottom:24,textAlign:"center",letterSpacing:"-0.5px"}}>Häufige Fragen</h2><div style={{display:"flex",flexDirection:"column",gap:8}}>
         {[{q:"Was kostet DeliCarto für mich?",a:"Nichts. DeliCarto ist für Kunden komplett kostenlos."},{q:"Wie bestelle ich?",a:"Du findest die Speisekarte, rufst direkt beim Lieferdienst an oder schreibst per WhatsApp. Keine Zwischenhändler."},{q:"Warum nicht Lieferando?",a:"Lieferando nimmt bis zu 30% Provision. Hier bestellt der Kunde direkt — das Essen kann günstiger sein."},{q:"Woher kommen die Lieferkosten?",a:"Jeder Lieferdienst legt seine Liefergebiete und Kosten selbst fest. Die Preise siehst du direkt auf der Karte."},{q:"Wie kann ich meinen Lieferdienst eintragen?",a:"Klicke oben auf 'Lieferdienst eintragen', registriere dich kostenlos und lade deine Speisekarte als PDF hoch. In unter 5 Minuten bist du online — ohne Provision, ohne Vertrag."}].map((f,i)=>(<div key={i} className="clift" style={{background:P.card,borderRadius:14,border:`1.5px solid ${P.border}`,overflow:"hidden",cursor:"pointer"}} onClick={()=>setOpenFaq(openFaq===i?null:i)}><div style={{padding:"18px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3 style={{fontSize:15,fontWeight:700}}>{f.q}</h3><span style={{fontSize:18,color:P.accent,fontWeight:800,transition:"transform 0.3s",transform:openFaq===i?"rotate(45deg)":"none",flexShrink:0,marginLeft:10}}>+</span></div>{openFaq===i&&<div style={{padding:"0 22px 18px"}}><p style={{fontSize:14,color:P.textM,lineHeight:1.7}}>{f.a}</p></div>}</div>))}
       </div></Reveal>
 
-      <div style={{background:`linear-gradient(135deg, ${P.accent}, #40916C)`,padding:"40px 24px",textAlign:"center"}}>
-        <div style={{maxWidth:600,margin:"0 auto"}}>
-          <h2 style={{fontSize:24,fontWeight:900,color:"#FFF",marginBottom:10}}>Du betreibst einen Lieferdienst?</h2>
-          <p style={{fontSize:14,color:"rgba(255,255,255,0.8)",lineHeight:1.6,marginBottom:20}}>Trage deinen Laden kostenlos ein und werde von Kunden in deiner Nähe gefunden. Keine Provision, keine versteckten Kosten.</p>
-          <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"#FFF",color:P.accent,borderRadius:100,padding:"12px 32px",fontSize:15,fontWeight:700,border:"none",boxShadow:"0 4px 16px rgba(0,0,0,0.2)"}}>Jetzt kostenlos eintragen →</button>
+      {/* ============ SEKTION 5: GROSSER LIEFERDIENST-CTA ============ */}
+      <Reveal style={{padding:"80px 24px",background:`linear-gradient(135deg, ${P.accent}, #40916C)`}}>
+        <div style={{maxWidth:1000,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:60,alignItems:"center"}} className="biz-grid">
+          <div style={{color:"#FFF"}}>
+            <span style={{display:"inline-block",background:"rgba(255,255,255,0.15)",padding:"6px 14px",borderRadius:100,fontSize:12,fontWeight:700,marginBottom:16,letterSpacing:"1px",textTransform:"uppercase"}}>Für Lieferdienste</span>
+            <h2 style={{fontSize:40,fontWeight:900,marginBottom:14,lineHeight:1.1,letterSpacing:"-1px"}}>Stell dich vor.<br/>Provisionsfrei.</h2>
+            <p style={{fontSize:16,opacity:0.9,lineHeight:1.6,marginBottom:24}}>Trage deinen Laden kostenlos ein und werde von Kunden in deiner Nähe gefunden. Keine Provision, keine versteckten Kosten — nur deine Speisekarte und glückliche Stammkunden.</p>
+            <div style={{marginBottom:28}}>
+              {[{t:"Kostenlos eintragen — für immer"},{t:"0% Provision auf jede Bestellung"},{t:"Eigener Online-Auftritt in 5 Minuten"},{t:"Optional: Premium für Top-Platzierung"}].map((x,i)=>(<div key={i} style={{padding:"8px 0",fontSize:15,display:"flex",alignItems:"center",gap:10}}><span style={{background:"rgba(255,255,255,0.2)",width:24,height:24,borderRadius:"50%",display:"inline-flex",alignItems:"center",justifyContent:"center",fontWeight:900,flexShrink:0}}>✓</span>{x.t}</div>))}
+            </div>
+            <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"#FFF",color:P.accent,borderRadius:100,padding:"14px 32px",fontSize:15,fontWeight:800,border:"none",boxShadow:"0 8px 24px rgba(0,0,0,0.15)",cursor:"pointer"}}>Jetzt anmelden — kostenlos →</button>
+          </div>
+          <div style={{background:"#FFF",borderRadius:24,padding:24,boxShadow:"0 20px 60px rgba(0,0,0,0.2)"}}>
+            {(()=>{const topByViews=[...rests].filter(r=>r.views).sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,3);const fallback=[{name:"Pizzeria Da Luigi",emoji:"🍕",views:847,growth:"+34%"},{name:"Kebab König",emoji:"🥙",views:1203,growth:"+58%"},{name:"Taco Loco",emoji:"🌮",views:678,growth:"+22%"}];const items=topByViews.length>=3?topByViews.map((r,i)=>({name:r.name,emoji:CE[r.cats[0]]||"🍽️",views:r.views,growth:["+34%","+58%","+22%"][i]||"+12%"})):fallback;
+            return items.map((item,i)=>(<div key={i} style={{background:P.card,border:`1.5px solid ${P.border}`,borderRadius:14,padding:14,marginBottom:i<items.length-1?12:0,display:"flex",alignItems:"center",gap:12}}>
+              <div style={{fontSize:32}}>{item.emoji}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:800,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</div>
+                <div style={{fontSize:11,color:P.textM}}>{item.views} Aufrufe diesen Monat</div>
+              </div>
+              <div style={{fontSize:11,color:P.accent,fontWeight:700,background:"#E8F0E8",padding:"4px 10px",borderRadius:8,whiteSpace:"nowrap"}}>{item.growth}</div>
+            </div>));})()}
+          </div>
         </div>
-      </div>
+        <style>{`@media(max-width:768px){.biz-grid{grid-template-columns:1fr!important;gap:32px!important}}`}</style>
+      </Reveal>
 
+      {/* FOOTER — Lieferando-style */}
       <footer style={{background:"#1B2A1D",color:"rgba(255,255,255,0.5)",padding:"48px 24px 28px"}}>
         <div style={{maxWidth:1100,margin:"0 auto"}}>
           <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:36,marginBottom:36}}>
@@ -615,9 +754,7 @@ export default function App(){
             </div>
             <div>
               <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:12}}>Rechtliches</div>
-              <a href="/impressum" style={{display:"block",color:"rgba(255,255,255,0.5)",fontSize:13,fontWeight:600,textDecoration:"none",marginBottom:10}}>Impressum</a>
-              <a href="/datenschutz" style={{display:"block",color:"rgba(255,255,255,0.5)",fontSize:13,fontWeight:600,textDecoration:"none",marginBottom:10}}>Datenschutzerklärung</a>
-              <a href="/agb" style={{display:"block",color:"rgba(255,255,255,0.5)",fontSize:13,fontWeight:600,textDecoration:"none",marginBottom:10}}>AGB</a>
+              {[{l:"Impressum",p:"impressum"},{l:"Datenschutzerklärung",p:"datenschutz"}].map((x,i)=>(<a key={i} href="#" onClick={e=>{e.preventDefault();setPage(x.p);window.scrollTo(0,0);}} style={{display:"block",color:"rgba(255,255,255,0.5)",fontSize:13,fontWeight:600,textDecoration:"none",marginBottom:10}}>{x.l}</a>))}
             </div>
             <div>
               <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:12}}>Kontakt</div>
@@ -636,21 +773,97 @@ export default function App(){
 
       </>)}
 
+      {/* COOKIE BANNER */}
       {!cookieOk&&<div style={{position:"fixed",bottom:0,left:0,right:0,background:"#1B2A1D",color:"#FFF",padding:"16px 24px",zIndex:9999,boxShadow:"0 -4px 20px rgba(0,0,0,0.15)"}}>
         <div style={{maxWidth:900,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap"}}>
-          <p style={{fontSize:13,lineHeight:1.5,flex:1,minWidth:250}}>Diese Website verwendet nur technisch notwendige Cookies für die Sitzungsverwaltung. <a href="/datenschutz" style={{color:P.mint,textDecoration:"underline"}}>Mehr erfahren</a></p>
+          <p style={{fontSize:13,lineHeight:1.5,flex:1,minWidth:250}}>Diese Website verwendet nur technisch notwendige Cookies für die Sitzungsverwaltung. <a href="#" onClick={e=>{e.preventDefault();setPage("datenschutz");}} style={{color:P.mint,textDecoration:"underline"}}>Mehr erfahren</a></p>
           <button onClick={acceptCookies} style={{padding:"10px 28px",borderRadius:100,background:P.accent,color:"#FFF",border:"none",fontSize:14,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>Verstanden</button>
         </div>
       </div>}
     </div>
   );
 
+  // ═══════════════════════════════════════════
+  // IMPRESSUM PAGE
+  // ═══════════════════════════════════════════
+  const LegalPage=({title,children})=>(<div style={{fontFamily:"system-ui,-apple-system,'Segoe UI',sans-serif",background:P.heroBg,color:P.text,minHeight:"100vh"}}>
+    <nav style={{background:"rgba(245,240,232,0.92)",backdropFilter:"blur(16px)",borderBottom:`1px solid ${P.border}`,padding:"14px 24px"}}>
+      <div style={{maxWidth:800,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{cursor:"pointer"}} onClick={()=>setPage("home")}><Logo h={24}/></div>
+        <button onClick={()=>setPage("home")} style={{background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"8px 18px",fontSize:13,fontWeight:700,color:P.textM,cursor:"pointer"}}>← Zur Startseite</button>
+      </div>
+    </nav>
+    <div style={{maxWidth:700,margin:"0 auto",padding:"40px 24px 80px"}}>
+      <h1 style={{fontSize:32,fontWeight:900,marginBottom:24}}>{title}</h1>
+      <div style={{fontSize:15,lineHeight:1.8,color:P.text}}>{children}</div>
+    </div>
+  </div>);
+
+  if(page==="impressum")return(<LegalPage title="Impressum">
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:16}}>Angaben gemäß § 5 TMG</p>
+      <p>Patrick Mecklenburg<br/>Husters Kamp 12<br/>49632 Essen (Oldb.)</p>
+      <p style={{marginTop:16}}><strong>Kontakt:</strong><br/>Telefon: 05434-8071665<br/>E-Mail: info@delicarto.de</p>
+      <p style={{marginTop:16}}><strong>Umsatzsteuer-ID:</strong><br/>Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br/>DE117085508</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>Haftung für Inhalte</p>
+      <p>Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.</p>
+      <p style={{marginTop:12}}>Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>Haftung für Links</p>
+      <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>Urheberrecht</p>
+      <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
+    </div>
+  </LegalPage>);
+
+  if(page==="datenschutz")return(<LegalPage title="Datenschutzerklärung">
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>1. Datenschutz auf einen Blick</p>
+      <p><strong>Allgemeine Hinweise:</strong> Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können.</p>
+      <p style={{marginTop:12}}><strong>Datenerfassung auf dieser Website:</strong> Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber: Patrick Mecklenburg, Husters Kamp 12, 49632 Essen (Oldb.), E-Mail: info@delicarto.de</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>2. Hosting</p>
+      <p>Diese Website wird bei Vercel Inc. gehostet. Beim Besuch der Website erfasst der Server automatisch Informationen in sogenannten Server-Log-Dateien wie den Browsertyp, das Betriebssystem, die Referrer URL, die IP-Adresse, den Zeitpunkt der Serveranfrage und ähnliches. Diese Daten sind nicht bestimmten Personen zuordenbar und werden nicht mit anderen Datenquellen zusammengeführt.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>3. Allgemeine Hinweise und Pflichtinformationen</p>
+      <p><strong>Datenschutz:</strong> Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.</p>
+      <p style={{marginTop:12}}><strong>Hinweis zur verantwortlichen Stelle:</strong><br/>Patrick Mecklenburg<br/>Husters Kamp 12<br/>49632 Essen (Oldb.)<br/>Telefon: 05434-8071665<br/>E-Mail: info@delicarto.de</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>4. Datenerfassung auf dieser Website</p>
+      <p><strong>Registrierung:</strong> Wenn Sie sich auf unserer Website registrieren, speichern wir Ihre E-Mail-Adresse und Ihren Namen. Diese Daten werden benötigt, um Ihnen den Zugang zu Ihrem Konto zu ermöglichen und Ihren Lieferdienst-Eintrag zu verwalten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
+      <p style={{marginTop:12}}><strong>PDF-Upload:</strong> Wenn Sie eine Speisekarte hochladen, wird die Datei auf Servern von Supabase (EU-Rechenzentrum Frankfurt) gespeichert. Die Datei ist öffentlich abrufbar, damit Kunden Ihre Speisekarte ansehen können.</p>
+      <p style={{marginTop:12}}><strong>Cookies:</strong> Diese Website verwendet technisch notwendige Cookies zur Sitzungsverwaltung. Darüber hinaus werden keine Tracking-Cookies oder Analyse-Tools eingesetzt.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`,marginBottom:24}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>5. Ihre Rechte</p>
+      <p>Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger und den Zweck der Datenverarbeitung sowie ein Recht auf Berichtigung, Sperrung oder Löschung dieser Daten. Hierzu sowie zu weiteren Fragen zum Thema personenbezogene Daten können Sie sich jederzeit unter der im Impressum angegebenen Adresse an uns wenden.</p>
+      <p style={{marginTop:12}}>Sie haben das Recht, Daten, die wir auf Grundlage Ihrer Einwilligung automatisiert verarbeiten, an sich oder an einen Dritten in einem gängigen, maschinenlesbaren Format aushändigen zu lassen.</p>
+    </div>
+    <div style={{background:P.card,borderRadius:18,padding:"28px 24px",border:`1.5px solid ${P.border}`}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:12}}>6. Datenverarbeitung durch Drittanbieter</p>
+      <p><strong>Supabase:</strong> Für die Datenhaltung nutzen wir Supabase mit Servern in Frankfurt (EU). Supabase verarbeitet Daten gemäß der DSGVO.</p>
+      <p style={{marginTop:12}}><strong>Vercel:</strong> Das Hosting erfolgt über Vercel Inc. mit Edge-Servern weltweit. Vercel erfüllt die Anforderungen der DSGVO und ist unter dem EU-US Data Privacy Framework zertifiziert.</p>
+    </div>
+  </LegalPage>);
+
+  // ═══════════════════════════════════════════
+  // REGISTER PAGE (Business view)
+  // ═══════════════════════════════════════════
   return(
     <div style={{fontFamily:"system-ui,-apple-system,'Segoe UI',sans-serif",background:P.heroBg,color:P.text,overflowX:"hidden",minHeight:"100vh"}}>
       <style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}input,select,textarea{font-family:inherit}::placeholder{color:#A0A890}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}@keyframes scaleIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
 .btn{transition:all 0.2s ease;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px}.btn:hover{transform:translateY(-1px)}.btn:active{transform:scale(0.98)}.btn2{transition:all 0.2s ease;cursor:pointer;font-family:inherit}.btn2:hover{background:#F0EBE0}.uz{transition:all 0.2s ease;cursor:pointer}.uz:hover{border-color:${P.accent};background:#F8F6FF}input:focus,select:focus,textarea:focus{outline:none;border-color:${P.accent};box-shadow:0 0 0 3px rgba(45,106,79,0.15)}`}</style>
 
+      {/* Nav */}
       <nav style={{background:"#FFF",borderBottom:`1px solid ${P.border}`,padding:"14px 24px"}}>
         <div style={{maxWidth:800,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{cursor:"pointer"}} onClick={()=>setPage("home")}><Logo h={24}/></div>
@@ -660,10 +873,12 @@ export default function App(){
 
       <div style={{maxWidth:700,margin:"0 auto",padding:"40px 24px 80px"}}>
 
+        {/* AUTH LANDING — show pricing + login/register options */}
         {authMode==="landing"&&(<div style={{animation:"fadeUp 0.3s ease"}}>
           <h1 style={{fontSize:32,fontWeight:900,marginBottom:6,letterSpacing:"-0.5px"}}>Lieferdienst eintragen</h1>
           <p style={{color:P.textM,fontSize:15,marginBottom:32}}>Bring deine Speisekarte online — kostenlos und ohne Provision.</p>
 
+          {/* Pricing cards — clickable */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))",gap:14,marginBottom:32}}>
             <div onClick={()=>{setSelPkg("kostenlos");setAuthMode("register");setAuthErr("");}} style={{background:P.card,borderRadius:18,padding:"24px 20px",border:selPkg==="kostenlos"?`2.5px solid ${P.accent}`:`1.5px solid ${P.border}`,cursor:"pointer",transition:"all 0.2s"}}>
               <div style={{fontSize:11,fontWeight:800,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}}>Kostenlos</div>
@@ -689,6 +904,7 @@ export default function App(){
             </div>
           </div>
 
+          {/* Lieferando comparison */}
           <div style={{background:P.card,borderRadius:16,padding:"20px 22px",border:`1.5px solid ${P.border}`,marginBottom:32}}>
             <div style={{fontSize:14,fontWeight:800,marginBottom:12}}>Warum DeliCarto statt Lieferando?</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
@@ -705,12 +921,14 @@ export default function App(){
             </div>
           </div>
 
+          {/* Already have account */}
           <div style={{textAlign:"center",marginTop:4}}>
             <span style={{fontSize:14,color:P.textM}}>Schon registriert? </span>
             <span onClick={()=>{setAuthMode("login");setAuthErr("");}} style={{fontSize:14,color:P.accent,fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>Einloggen</span>
           </div>
         </div>)}
 
+        {/* LOGIN FORM */}
         {authMode==="login"&&(<div style={{maxWidth:400,margin:"0 auto",animation:"fadeUp 0.3s ease"}}>
           <button className="btn2" onClick={()=>setAuthMode("landing")} style={{background:"transparent",border:"none",padding:"0 0 16px",fontSize:13,fontWeight:700,color:P.textM}}>← Zurück</button>
           <h2 style={{fontSize:26,fontWeight:900,marginBottom:6}}>Willkommen zurück</h2>
@@ -724,8 +942,10 @@ export default function App(){
           </div>
         </div>)}
 
+        {/* REGISTER FORM */}
         {authMode==="register"&&(<div style={{maxWidth:400,margin:"0 auto",animation:"fadeUp 0.3s ease"}}>
           <button className="btn2" onClick={()=>setAuthMode("landing")} style={{background:"transparent",border:"none",padding:"0 0 16px",fontSize:13,fontWeight:700,color:P.textM}}>← Zurück zur Paketauswahl</button>
+          {/* Selected package indicator */}
           <div style={{background:selPkg==="digi"?"#FFF5EB":selPkg==="premium"?`${P.accent}12`:`${P.accent}08`,border:`1.5px solid ${selPkg==="digi"?"#DDA15E":P.accent}`,borderRadius:12,padding:"12px 16px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div><div style={{fontSize:10,color:P.textM,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px"}}>Gewähltes Paket</div><div style={{fontSize:15,fontWeight:800}}>{selPkg==="kostenlos"?"Kostenlos":selPkg==="premium"?"⭐ Premium":"✨ Digitalisierung"}</div></div>
             <div style={{fontSize:18,fontWeight:900,color:selPkg==="digi"?"#BC6C25":P.accent}}>{selPkg==="kostenlos"?"0€":selPkg==="premium"?"9,90€/M":"ab 29€"}</div>
@@ -738,12 +958,14 @@ export default function App(){
             <div><label style={{fontSize:11,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:6}}>Passwort</label><input type="password" placeholder="Mind. 6 Zeichen" value={authPass} onChange={e=>setAuthPass(e.target.value)} style={{width:"100%",padding:"14px 16px",fontSize:15,fontWeight:500,border:`1.5px solid ${P.border}`,borderRadius:12,background:"#FFF",color:P.text,fontFamily:"inherit"}}/></div>
             {authErr&&<div style={{background:"#FFF0F3",border:"1px solid #FFD6E0",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:600,color:"#C4314B"}}>{authErr}</div>}
             <button className="btn" onClick={doRegister} style={{width:"100%",padding:16,fontSize:15,fontWeight:700,background:P.text,color:"#FFF",borderRadius:100}}>Konto erstellen</button>
-            <p style={{fontSize:11,color:P.textM,textAlign:"center",lineHeight:1.5}}>Mit der Registrierung akzeptierst du unsere <a href="/agb" style={{color:P.accent}}>AGB</a> und <a href="/datenschutz" style={{color:P.accent}}>Datenschutzerklärung</a>.</p>
+            <p style={{fontSize:11,color:P.textM,textAlign:"center",lineHeight:1.5}}>Mit der Registrierung akzeptierst du unsere <a href="#" style={{color:P.accent}}>AGB</a> und <a href="#" style={{color:P.accent}}>Datenschutzerklärung</a>.</p>
             <p style={{textAlign:"center",fontSize:13,color:P.textM}}>Schon ein Konto? <span onClick={()=>{setAuthMode("login");setAuthErr("");}} style={{color:P.accent,fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>Einloggen</span></p>
           </div>
         </div>)}
 
+        {/* LOGGED IN — show 4-step restaurant form */}
         {authMode==="loggedIn"&&(<>
+          {/* Logged in header */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24,padding:"12px 16px",background:P.card,borderRadius:12,border:`1.5px solid ${P.border}`}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:32,height:32,borderRadius:8,background:`${P.accent}35`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>👤</div><div><div style={{fontSize:13,fontWeight:700}}>{authName||authEmail}</div><div style={{fontSize:11,color:P.textM}}>{authEmail}</div></div></div>
             <button className="btn2" onClick={doLogout} style={{background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"6px 14px",fontSize:12,fontWeight:700,color:P.textM}}>Abmelden</button>
@@ -753,8 +975,10 @@ export default function App(){
           <h1 style={{fontSize:32,fontWeight:900,marginBottom:6,letterSpacing:"-0.5px"}}>Lieferdienst eintragen</h1>
           <p style={{color:P.textM,fontSize:15,marginBottom:28}}>Kostenlos. In unter 5 Minuten. Kein Vertrag, keine Provision.</p>
 
+          {/* Progress */}
           <div style={{display:"flex",gap:4,marginBottom:32}}>{[1,2,3,4].map(s=>(<div key={s} style={{flex:1,height:4,borderRadius:2,background:s<=rStep?`linear-gradient(90deg,${P.mint},${P.lila})`:P.border,transition:"background 0.4s"}}/>))}</div>
 
+          {/* Step 1: Basic info */}
           {rStep===1&&<div style={{display:"grid",gap:14,animation:"fadeUp 0.2s ease"}}>
             <h3 style={{fontSize:18,fontWeight:800,marginBottom:4}}>1. Grundinfos</h3>
             <Inp label="Name des Lieferdienstes *" ph="z.B. Kebab König" val={rData.name} onChange={e=>setRD({...rData,name:e.target.value})}/>
@@ -765,6 +989,7 @@ export default function App(){
             <button className="btn" onClick={()=>{if(rData.name&&rData.cats.length>0&&rData.street&&rData.plz&&rData.city)setRStep(2);}} disabled={!rData.name||rData.cats.length===0||!rData.street||!rData.plz||!rData.city} style={{width:"100%",padding:14,marginTop:6,fontSize:15,fontWeight:700,background:(rData.name&&rData.cats.length>0&&rData.street&&rData.plz&&rData.city)?P.text:"#E5DDD0",color:(rData.name&&rData.cats.length>0&&rData.street&&rData.plz&&rData.city)?"#FFF":"#A0A890",borderRadius:100,cursor:(rData.name&&rData.cats.length>0&&rData.street&&rData.plz&&rData.city)?"pointer":"not-allowed"}}>Weiter → Liefergebiete</button>
           </div>}
 
+          {/* Step 2: Delivery zones */}
           {rStep===2&&<div style={{animation:"fadeUp 0.2s ease"}}>
             <h3 style={{fontSize:18,fontWeight:800,marginBottom:4}}>2. Liefergebiete</h3>
             <p style={{color:P.textM,fontSize:13,marginBottom:16}}>Trage die Orte/Stadtteile ein die du belieferst, mit der jeweiligen PLZ und den Lieferkosten.</p>
@@ -772,38 +997,30 @@ export default function App(){
             <div style={{display:"flex",gap:8,marginTop:22}}><button className="btn2" onClick={()=>setRStep(1)} style={{flex:1,padding:14,fontSize:14,fontWeight:700,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,color:P.textM}}>← Zurück</button><button className="btn" onClick={()=>{if(rData.zones.some(z=>z.name&&z.plz))setRStep(3);}} disabled={!rData.zones.some(z=>z.name&&z.plz)} style={{flex:2,padding:14,fontSize:15,fontWeight:700,background:rData.zones.some(z=>z.name&&z.plz)?P.text:"#E5DDD0",color:rData.zones.some(z=>z.name&&z.plz)?"#FFF":"#A0A890",borderRadius:100,cursor:rData.zones.some(z=>z.name&&z.plz)?"pointer":"not-allowed"}}>Weiter → Öffnungszeiten</button></div>
           </div>}
 
+          {/* Step 3: Schedule */}
           {rStep===3&&<div style={{animation:"fadeUp 0.2s ease"}}>
             <h3 style={{fontSize:18,fontWeight:800,marginBottom:16}}>3. Öffnungszeiten</h3>
             <SchedEdit schedule={rData.sched} onChange={s=>setRD({...rData,sched:s})}/>
             <div style={{display:"flex",gap:8,marginTop:22}}><button className="btn2" onClick={()=>setRStep(2)} style={{flex:1,padding:14,fontSize:14,fontWeight:700,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,color:P.textM}}>← Zurück</button><button className="btn" onClick={()=>setRStep(4)} style={{flex:2,padding:14,fontSize:15,fontWeight:700,background:P.text,color:"#FFF",borderRadius:100}}>Weiter → Speisekarte</button></div>
           </div>}
 
+          {/* Step 4: PDF upload */}
           {rStep===4&&<div style={{animation:"fadeUp 0.2s ease"}}>
-            <h3 style={{fontSize:18,fontWeight:800,marginBottom:16}}>4. Speisekarte & Logo</h3>
-
-            <label style={{fontSize:11,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:8}}>Speisekarte als PDF *</label>
+            <h3 style={{fontSize:18,fontWeight:800,marginBottom:16}}>4. Speisekarte hochladen</h3>
             <input type="file" accept=".pdf" ref={fRef} onChange={e=>{const f=e.target.files[0];if(f)setRD({...rData,file:f});}} style={{display:"none"}}/>
-            {!rData.file?<div className="uz" onClick={()=>fRef.current?.click()} style={{border:`2px dashed ${P.border}`,borderRadius:18,padding:"36px 20px",textAlign:"center",background:"#FFF",marginBottom:16}}>
-              <div style={{fontSize:42,marginBottom:10}}>📄</div>
-              <h3 style={{fontSize:16,fontWeight:800,marginBottom:4}}>PDF hier hochladen</h3>
-              <p style={{color:P.textM,fontSize:13,marginBottom:14}}>Klicke hier oder ziehe deine Speisekarte rein</p>
-              <div style={{padding:"10px 14px",background:`${P.accent}30`,borderRadius:12,fontSize:12,fontWeight:600,color:P.accent,display:"inline-block"}}>📸 Kein PDF? <span style={{textDecoration:"underline",cursor:"pointer"}} onClick={e=>{e.stopPropagation();setModal("digi");}}>Digitalisierung ab 29€</span></div>
-            </div>:(<div style={{background:"#E8FFF3",borderRadius:14,padding:"16px",display:"flex",alignItems:"center",gap:12,border:"1px solid #A7F3D0",marginBottom:16}}><span style={{fontSize:22}}>✅</span><div style={{flex:1,minWidth:0}}><div style={{fontSize:14,fontWeight:700,color:"#1B5E3B"}}>PDF hochgeladen</div><div style={{fontSize:12,color:P.textM,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{rData.file.name}</div></div><button onClick={()=>setRD({...rData,file:null})} style={{background:"none",border:"none",cursor:"pointer",fontSize:16,color:P.textM}}>✕</button></div>)}
-
-            <label style={{fontSize:11,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:8}}>Logo (optional) <span style={{fontWeight:500,textTransform:"none",letterSpacing:0,color:"#A0A890"}}>— PNG oder JPG, max. 2MB</span></label>
-            <input type="file" accept="image/*" ref={logoRef} onChange={e=>{const f=e.target.files[0];if(f)setRD({...rData,logo:f});}} style={{display:"none"}}/>
-            {!rData.logo?<div className="uz" onClick={()=>logoRef.current?.click()} style={{border:`2px dashed ${P.border}`,borderRadius:18,padding:"28px 20px",textAlign:"center",background:"#FFF"}}>
-              <div style={{fontSize:36,marginBottom:8}}>🖼️</div>
-              <h3 style={{fontSize:14,fontWeight:800,marginBottom:4}}>Logo hochladen</h3>
-              <p style={{color:P.textM,fontSize:12}}>PNG mit transparentem Hintergrund sieht am besten aus</p>
-            </div>:(<div style={{background:"#E8FFF3",borderRadius:14,padding:"16px",display:"flex",alignItems:"center",gap:12,border:"1px solid #A7F3D0"}}><div style={{width:48,height:48,borderRadius:10,background:"#FFF",border:`1.5px solid ${P.border}`,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><img src={URL.createObjectURL(rData.logo)} alt="Logo Vorschau" style={{width:"100%",height:"100%",objectFit:"contain"}}/></div><div style={{flex:1,minWidth:0}}><div style={{fontSize:14,fontWeight:700,color:"#1B5E3B"}}>Logo hochgeladen</div><div style={{fontSize:12,color:P.textM,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{rData.logo.name}</div></div><button onClick={()=>setRD({...rData,logo:null})} style={{background:"none",border:"none",cursor:"pointer",fontSize:16,color:P.textM}}>✕</button></div>)}
-
+            {!rData.file?<div className="uz" onClick={()=>fRef.current?.click()} style={{border:`2px dashed ${P.border}`,borderRadius:18,padding:"48px 20px",textAlign:"center",background:"#FFF"}}>
+              <div style={{fontSize:52,marginBottom:14}}>📄</div>
+              <h3 style={{fontSize:18,fontWeight:800,marginBottom:6}}>PDF hier hochladen</h3>
+              <p style={{color:P.textM,fontSize:14,marginBottom:16}}>Klicke hier oder ziehe deine Speisekarte rein</p>
+              <div style={{padding:"12px 16px",background:`${P.accent}30`,borderRadius:12,fontSize:13,fontWeight:600,color:P.accent,display:"inline-block"}}>📸 Kein PDF? <span style={{textDecoration:"underline",cursor:"pointer"}} onClick={e=>{e.stopPropagation();setModal("digi");}}>Digitalisierung ab 29€</span></div>
+            </div>:(<div style={{background:"#E8FFF3",borderRadius:14,padding:"18px",display:"flex",alignItems:"center",gap:12,border:"1px solid #A7F3D0"}}><span style={{fontSize:22}}>✅</span><div style={{flex:1,minWidth:0}}><div style={{fontSize:14,fontWeight:700,color:"#1B5E3B"}}>Hochgeladen</div><div style={{fontSize:12,color:P.textM,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{rData.file.name}</div></div><button onClick={()=>setRD({...rData,file:null})} style={{background:"none",border:"none",cursor:"pointer",fontSize:16,color:P.textM}}>✕</button></div>)}
             <div style={{display:"flex",gap:8,marginTop:22}}><button className="btn2" onClick={()=>setRStep(3)} style={{flex:1,padding:14,fontSize:14,fontWeight:700,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,color:P.textM}}>← Zurück</button><button className="btn" onClick={submitR} disabled={!rData.file} style={{flex:2,padding:14,fontSize:15,fontWeight:700,background:rData.file?P.text:"#E5DDD0",color:rData.file?"#FFF":"#A0A890",borderRadius:100,cursor:rData.file?"pointer":"not-allowed"}}>✨ Veröffentlichen</button></div>
           </div>}
         </>)}
         </>)}
       </div>
 
+      {/* Digi Modal */}
       {modal==="digi"&&<Overlay onClose={resetD}>{dOk?(<div style={{padding:"56px 28px",textAlign:"center"}}><div style={{fontSize:48,marginBottom:12}}>✨</div><h3 style={{fontSize:22,fontWeight:900,marginBottom:6}}>Anfrage gesendet!</h3><p style={{color:P.textM,fontSize:14}}>Wir melden uns in 24h.</p></div>):(<><div style={{padding:"22px 24px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><h2 style={{fontSize:20,fontWeight:900}}>Digitalisierung</h2><p style={{color:P.textM,fontSize:12}}>Schritt {dStep}/2</p></div><button onClick={resetD} style={{width:34,height:34,borderRadius:10,border:`1.5px solid ${P.border}`,background:"#FFF",cursor:"pointer",fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",color:P.textM}}>✕</button></div>
         <div style={{padding:"20px 24px 26px"}}>
           {dStep===1&&<div style={{animation:"fadeUp 0.2s ease"}}><label style={{fontSize:11,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:8}}>Paket wählen *</label><div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:18}}>{[{id:"standard",n:"Standard",p:"29€",d:"1 Seite · 48h"},{id:"profi",n:"Profi",p:"49€",d:"4 Seiten · Logo · 24h",pop:true},{id:"premium",n:"Premium",p:"79€",d:"Unbegrenzt · 12h"}].map(pk=>(<div key={pk.id} onClick={()=>setDD({...dData,pkg:pk.id})} style={{padding:"14px 16px",borderRadius:14,cursor:"pointer",border:dData.pkg===pk.id?`2px solid ${P.lila}`:`1.5px solid ${P.border}`,background:dData.pkg===pk.id?`${P.lila}10`:"#FFF",position:"relative"}}>{pk.pop&&<span style={{position:"absolute",top:-7,right:12,background:P.accent,color:"#FFF",fontSize:9,fontWeight:800,padding:"2px 10px",borderRadius:100}}>BELIEBT</span>}<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style={{fontSize:14,fontWeight:800}}>{pk.n}</div><div style={{fontSize:12,color:P.textM}}>{pk.d}</div></div><div style={{fontSize:22,fontWeight:900,color:P.accent}}>{pk.p}</div></div></div>))}</div><div style={{display:"grid",gap:12}}><Inp label="Restaurant *" ph="z.B. Döner Meister" val={dData.name} onChange={e=>setDD({...dData,name:e.target.value})}/><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}><Inp label="Telefon *" ph="0176 ..." val={dData.phone} onChange={e=>setDD({...dData,phone:e.target.value})}/><Inp label="E-Mail" ph="info@..." val={dData.email} onChange={e=>setDD({...dData,email:e.target.value})}/></div></div><button className="btn" onClick={()=>{if(dData.name&&dData.phone)setDStep(2);}} disabled={!dData.name||!dData.phone} style={{width:"100%",padding:14,marginTop:16,fontSize:14,fontWeight:700,background:(dData.name&&dData.phone)?P.text:"#E5DDD0",color:(dData.name&&dData.phone)?"#FFF":"#A0A890",borderRadius:100}}>Weiter → Fotos</button></div>}
