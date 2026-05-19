@@ -13,6 +13,17 @@ const mkEmpty=()=>({name:"",cats:[],street:"",nr:"",plz:"",city:"",phone:"",what
 const lb={fontSize:11,fontWeight:700,color:"#6B7E6F",textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:6};
 const is={fontSize:14,fontWeight:500,border:"1.5px solid #D5CCBB",borderRadius:10,background:"#FFF",color:"#1B2A1D",padding:"12px 14px",width:"100%",fontFamily:"inherit"};
 
+// Klick-Typ-Labels für Anzeige
+const CLICK_LABELS={
+  phone:"📞 Telefon",
+  whatsapp:"💬 WhatsApp",
+  pdf:"📄 PDF-Download",
+  pdf_view:"👁️ PDF-Ansicht",
+  route:"📍 Route",
+  website:"🌐 Website",
+  plz_search:"🔍 PLZ-Suche"
+};
+
 // Status-Badge Helper
 const statusBadge=(status)=>{
   if(status==="approved")return{label:"✅ Freigegeben",bg:"#E8F5E9",color:"#1B5E3B"};
@@ -54,7 +65,6 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         pdfUrl=publicUrl;pdfName=f.file.name;
       }
       const rd={name:f.name,categories:f.cats,street:f.street,house_nr:f.nr,plz:f.plz,city:f.city,phone:f.phone||null,whatsapp:f.whatsapp||null,website:f.website||null,daily_special:f.dailySpecial||null,image_url:imageUrl||null,schedule:f.sched,delivery_schedule:f.useDelivSched?f.delivSched:null,min_order:f.min||null,pdf_url:pdfUrl||null,pdf_name:pdfName||null,color:CC[Math.floor(Math.random()*CC.length)],is_premium:f.isPremium,owner_id:user.id};
-      // Manuell angelegte Lieferdienste sind direkt approved
       if(!editId){rd.approval_status="approved";rd.approved_at=new Date().toISOString();}
       let rid=editId;
       if(editId){
@@ -87,7 +97,6 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
       <div><label style={lb}>Tagesangebote (optional, nur Premium)</label><textarea style={{...is,height:100,resize:"vertical"}} placeholder={"Mo: Nudeltag - alle Nudeln 7€\nDi: Pizzatag - alle 28cm Pizza 7€\nMi: Schnitzeltag 9€"} value={f.dailySpecial||""} onChange={e=>upd("dailySpecial",e.target.value)}/></div>
       <div style={{display:"flex",alignItems:"center",gap:10}}><button onClick={()=>upd("isPremium",!f.isPremium)} style={{width:48,height:26,borderRadius:13,background:f.isPremium?"#2D6A4F":"#DDD",border:"none",cursor:"pointer",position:"relative"}}><div style={{width:22,height:22,borderRadius:11,background:"#FFF",position:"absolute",top:2,left:f.isPremium?24:2,transition:"left 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.2)"}}/></button><span style={{fontSize:13,fontWeight:700,color:f.isPremium?"#2D6A4F":"#6B7E6F"}}>⭐ Premium</span></div>
 
-      {/* Zones */}
       <div><label style={lb}>Liefergebiete</label>
         {f.zones.map((z,i)=>(<div key={i} style={{display:"flex",gap:6,marginBottom:6,flexWrap:"wrap",alignItems:"end"}}>
           <div style={{width:140}}>{i===0&&<label style={lb}>Ort</label>}<input style={is} placeholder="Essen" value={z.name} onChange={e=>{const n=[...f.zones];n[i]={...n[i],name:e.target.value};upd("zones",n);}}/></div>
@@ -99,7 +108,6 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         <button onClick={()=>upd("zones",[...f.zones,{name:"",plz:"",cost:"0€",minOrder:""}])} style={{padding:"6px 14px",borderRadius:100,border:"1.5px dashed #D5CCBB",background:"transparent",color:"#2D6A4F",fontSize:12,fontWeight:700,cursor:"pointer",marginTop:4}}>+ Liefergebiet</button>
       </div>
 
-      {/* Schedule */}
       <div><label style={lb}>Öffnungszeiten (Laden / Abholung)</label>
         <div style={{display:"flex",flexDirection:"column",gap:5}}>
           {DAYS.map((_,i)=>{const d=f.sched[i];return(<div key={i} style={{padding:"8px 12px",borderRadius:10,background:d.closed?"#FFF0F3":"#F5F0E8",border:`1px solid ${d.closed?"#FFD6E0":"#D5CCBB"}`}}>
@@ -121,7 +129,6 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         </div>
       </div>
 
-      {/* Delivery schedule toggle */}
       <div style={{display:"flex",alignItems:"center",gap:10}}>
         <button onClick={()=>{upd("useDelivSched",!f.useDelivSched);if(!f.delivSched)upd("delivSched",mkDS());}} style={{width:48,height:26,borderRadius:13,background:f.useDelivSched?"#2D6A4F":"#DDD",border:"none",cursor:"pointer",position:"relative"}}>
           <div style={{width:22,height:22,borderRadius:11,background:"#FFF",position:"absolute",top:2,left:f.useDelivSched?24:2,transition:"left 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.2)"}}/>
@@ -129,7 +136,6 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         <span style={{fontSize:13,fontWeight:700,color:f.useDelivSched?"#2D6A4F":"#6B7E6F"}}>Abweichende Lieferzeiten</span>
       </div>
 
-      {/* Delivery schedule editor */}
       {f.useDelivSched&&<div><label style={lb}>Lieferzeiten</label>
         <div style={{display:"flex",flexDirection:"column",gap:5}}>
           {DAYS.map((_,i)=>{const d=(f.delivSched||mkDS())[i];return(<div key={`d${i}`} style={{padding:"8px 12px",borderRadius:10,background:d.closed?"#FFF0F3":"#E8F4FD",border:`1px solid ${d.closed?"#FFD6E0":"#93C5FD"}`}}>
@@ -151,7 +157,6 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         </div>
       </div>}
 
-      {/* Logo/Bild */}
       <div><label style={lb}>Logo oder Foto (optional)</label>
         <input type="file" accept="image/*" id="imgUpload" onChange={e=>{if(e.target.files[0])upd("imageFile",e.target.files[0]);}} style={{display:"none"}}/>
         {f.imageUrl&&!f.imageFile&&<div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}><img src={f.imageUrl} style={{width:48,height:48,borderRadius:12,objectFit:"cover"}} alt="Logo"/><span style={{fontSize:13,fontWeight:600,color:"#1B5E3B"}}>Bild vorhanden</span></div>}
@@ -160,7 +165,6 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
         <div style={{fontSize:11,color:"#6B7E6F",marginTop:4}}>Wird automatisch quadratisch zugeschnitten. Kein Bild = Küchen-Emoji.</div>
       </div>
 
-      {/* PDF */}
       <div><label style={lb}>Speisekarte (PDF)</label>
         <input type="file" accept=".pdf" ref={fRef} onChange={e=>{if(e.target.files[0])upd("file",e.target.files[0]);}} style={{display:"none"}}/>
         {f.pdfUrl&&!f.file&&<div style={{background:"#E8F5E9",borderRadius:10,padding:"10px 14px",marginBottom:8,fontSize:13,fontWeight:600,color:"#1B5E3B"}}>📄 {f.pdfName}</div>}
@@ -171,6 +175,168 @@ function RestForm({initial,editId,user,onSaved,onCancel}){
       <div style={{display:"flex",gap:10,marginTop:8}}>
         <button onClick={save} disabled={saving} style={{flex:1,padding:14,fontSize:15,fontWeight:700,background:"#2D6A4F",color:"#FFF",borderRadius:100,border:"none",cursor:saving?"wait":"pointer",opacity:saving?0.6:1}}>{saving?"Speichern...":editId?"💾 Speichern":"✅ Anlegen"}</button>
         {onCancel&&<button onClick={onCancel} style={{padding:14,fontSize:15,fontWeight:700,background:"#FFFDF8",color:"#6B7E6F",borderRadius:100,border:"1.5px solid #D5CCBB",cursor:"pointer"}}>Abbrechen</button>}
+      </div>
+    </div>
+  </div>);
+}
+
+// ============ STATS COMPONENT ============
+function StatsView({rests}){
+  const[clicks,setClicks]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[range,setRange]=useState(30); // Tage
+
+  useEffect(()=>{
+    const loadClicks=async()=>{
+      setLoading(true);
+      const since=new Date();
+      since.setDate(since.getDate()-range);
+      const{data,error}=await supabase.from("clicks").select("*").gte("created_at",since.toISOString()).order("created_at",{ascending:false});
+      if(!error)setClicks(data||[]);
+      setLoading(false);
+    };
+    loadClicks();
+  },[range]);
+
+  if(loading)return(<div style={{textAlign:"center",padding:"60px",color:P.textM}}>📊 Statistiken werden geladen...</div>);
+
+  // Gesamt-Klicks (ohne PLZ-Suchen, da die haben keine restaurant_id)
+  const restClicks=clicks.filter(c=>c.restaurant_id);
+  const plzSearches=clicks.filter(c=>c.click_type==="plz_search");
+
+  // Klicks pro Restaurant
+  const byRest={};
+  restClicks.forEach(c=>{
+    if(!byRest[c.restaurant_id])byRest[c.restaurant_id]={total:0,types:{}};
+    byRest[c.restaurant_id].total++;
+    byRest[c.restaurant_id].types[c.click_type]=(byRest[c.restaurant_id].types[c.click_type]||0)+1;
+  });
+  const topRests=Object.entries(byRest).map(([rid,data])=>{
+    const r=rests.find(x=>x.id===rid);
+    return{name:r?.name||"(gelöscht)",emoji:CE[r?.categories?.[0]]||"🍽️",total:data.total,types:data.types};
+  }).sort((a,b)=>b.total-a.total).slice(0,10);
+
+  // Klicks nach Typ
+  const byType={};
+  restClicks.forEach(c=>{byType[c.click_type]=(byType[c.click_type]||0)+1;});
+
+  // Top PLZ
+  const plzCount={};
+  plzSearches.forEach(c=>{if(c.plz_searched){plzCount[c.plz_searched]=(plzCount[c.plz_searched]||0)+1;}});
+  const topPlz=Object.entries(plzCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  // Klicks pro Tag (letzte X Tage)
+  const byDay={};
+  for(let i=0;i<range;i++){
+    const d=new Date();
+    d.setDate(d.getDate()-i);
+    byDay[d.toISOString().slice(0,10)]=0;
+  }
+  clicks.forEach(c=>{
+    const day=c.created_at.slice(0,10);
+    if(byDay[day]!==undefined)byDay[day]++;
+  });
+  const daysSorted=Object.entries(byDay).sort((a,b)=>a[0].localeCompare(b[0]));
+  const maxDay=Math.max(...daysSorted.map(d=>d[1]),1);
+
+  const totalClicks=clicks.length;
+  const totalRestClicks=restClicks.length;
+  const totalPlzSearches=plzSearches.length;
+
+  return(<div style={{display:"grid",gap:20}}>
+    {/* Zeitraum-Filter */}
+    <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+      <span style={{fontSize:12,fontWeight:700,color:P.textM,marginRight:6}}>Zeitraum:</span>
+      {[7,30,90,365].map(d=>(<button key={d} onClick={()=>setRange(d)} style={{padding:"6px 14px",borderRadius:100,fontSize:12,fontWeight:700,background:range===d?P.accent:P.card,color:range===d?"#FFF":P.textM,border:range===d?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>{d===365?"1 Jahr":d+" Tage"}</button>))}
+    </div>
+
+    {/* Übersichts-Karten */}
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))",gap:12}}>
+      <div style={{background:P.card,borderRadius:14,padding:"20px",border:`1.5px solid ${P.border}`,textAlign:"center"}}>
+        <div style={{fontSize:36,fontWeight:900,color:P.accent,lineHeight:1}}>{totalClicks}</div>
+        <div style={{fontSize:11,color:P.textM,fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:"1px"}}>Klicks gesamt</div>
+      </div>
+      <div style={{background:P.card,borderRadius:14,padding:"20px",border:`1.5px solid ${P.border}`,textAlign:"center"}}>
+        <div style={{fontSize:36,fontWeight:900,color:P.accent,lineHeight:1}}>{totalRestClicks}</div>
+        <div style={{fontSize:11,color:P.textM,fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:"1px"}}>Restaurant-Klicks</div>
+      </div>
+      <div style={{background:P.card,borderRadius:14,padding:"20px",border:`1.5px solid ${P.border}`,textAlign:"center"}}>
+        <div style={{fontSize:36,fontWeight:900,color:"#BC6C25",lineHeight:1}}>{totalPlzSearches}</div>
+        <div style={{fontSize:11,color:P.textM,fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:"1px"}}>PLZ-Suchen</div>
+      </div>
+      <div style={{background:P.card,borderRadius:14,padding:"20px",border:`1.5px solid ${P.border}`,textAlign:"center"}}>
+        <div style={{fontSize:36,fontWeight:900,color:P.mint,lineHeight:1}}>{Object.keys(byRest).length}</div>
+        <div style={{fontSize:11,color:P.textM,fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:"1px"}}>Aktive Restaurants</div>
+      </div>
+    </div>
+
+    {/* Tagesverlauf (Mini-Chart) */}
+    <div style={{background:P.card,borderRadius:14,padding:"20px",border:`1.5px solid ${P.border}`}}>
+      <div style={{fontSize:14,fontWeight:800,marginBottom:14}}>📈 Klicks pro Tag (letzte {range} Tage)</div>
+      <div style={{display:"flex",alignItems:"flex-end",gap:2,height:120,overflowX:"auto"}}>
+        {daysSorted.map(([day,count])=>{const h=(count/maxDay)*100;const dateLabel=new Date(day).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});return(<div key={day} title={`${dateLabel}: ${count} Klicks`} style={{flex:"1",minWidth:8,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+          <div style={{width:"100%",height:`${h}%`,background:count>0?P.accent:"#E5E5E5",borderRadius:"3px 3px 0 0",minHeight:2,transition:"all 0.3s"}}/>
+        </div>);})}
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:P.textM,marginTop:6}}>
+        <span>{new Date(daysSorted[0]?.[0]||Date.now()).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</span>
+        <span>Max: {maxDay} Klicks/Tag</span>
+        <span>Heute</span>
+      </div>
+    </div>
+
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(320px, 1fr))",gap:16}}>
+      {/* Top Restaurants */}
+      <div style={{background:P.card,borderRadius:14,padding:"20px",border:`1.5px solid ${P.border}`}}>
+        <div style={{fontSize:14,fontWeight:800,marginBottom:14}}>🏆 Top 10 Restaurants</div>
+        {topRests.length===0?(<div style={{fontSize:13,color:P.textM,textAlign:"center",padding:"20px"}}>Noch keine Klicks im Zeitraum.</div>):(
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {topRests.map((r,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px",background:P.bg,borderRadius:10}}>
+              <div style={{fontSize:13,fontWeight:800,color:P.textM,width:22,textAlign:"center"}}>{i+1}</div>
+              <div style={{fontSize:20}}>{r.emoji}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div>
+                <div style={{fontSize:10,color:P.textM,display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {Object.entries(r.types).map(([t,c])=>(<span key={t}>{CLICK_LABELS[t]||t}: {c}</span>))}
+                </div>
+              </div>
+              <div style={{fontSize:18,fontWeight:900,color:P.accent}}>{r.total}</div>
+            </div>))}
+          </div>
+        )}
+      </div>
+
+      {/* Klick-Typen */}
+      <div style={{background:P.card,borderRadius:14,padding:"20px",border:`1.5px solid ${P.border}`}}>
+        <div style={{fontSize:14,fontWeight:800,marginBottom:14}}>📊 Klicks nach Typ</div>
+        {Object.keys(byType).length===0?(<div style={{fontSize:13,color:P.textM,textAlign:"center",padding:"20px"}}>Noch keine Restaurant-Klicks.</div>):(
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([type,count])=>{const pct=Math.round((count/totalRestClicks)*100);return(<div key={type}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}}>
+                <span style={{fontWeight:700}}>{CLICK_LABELS[type]||type}</span>
+                <span style={{color:P.textM,fontWeight:700}}>{count} ({pct}%)</span>
+              </div>
+              <div style={{height:8,background:P.bg,borderRadius:4,overflow:"hidden"}}>
+                <div style={{width:`${pct}%`,height:"100%",background:P.accent,transition:"width 0.3s"}}/>
+              </div>
+            </div>);})}
+          </div>
+        )}
+      </div>
+
+      {/* Top PLZ */}
+      <div style={{background:P.card,borderRadius:14,padding:"20px",border:`1.5px solid ${P.border}`}}>
+        <div style={{fontSize:14,fontWeight:800,marginBottom:14}}>📍 Top 10 gesuchte PLZ</div>
+        {topPlz.length===0?(<div style={{fontSize:13,color:P.textM,textAlign:"center",padding:"20px"}}>Noch keine PLZ-Suchen.</div>):(
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {topPlz.map(([plz,count],i)=>(<div key={plz} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:P.bg,borderRadius:8}}>
+              <div style={{fontSize:13,fontWeight:800,color:P.textM,width:22,textAlign:"center"}}>{i+1}</div>
+              <div style={{flex:1,fontSize:14,fontWeight:700}}>📍 {plz}</div>
+              <div style={{fontSize:14,fontWeight:900,color:"#BC6C25"}}>{count}× gesucht</div>
+            </div>))}
+          </div>
+        )}
+        <div style={{fontSize:11,color:P.textM,marginTop:10,padding:"8px",background:"#FFF5EB",borderRadius:8,lineHeight:1.5}}>💡 <b>Tipp:</b> PLZ mit vielen Suchen aber wenig Restaurants = Akquise-Chance!</div>
       </div>
     </div>
   </div>);
@@ -259,11 +425,15 @@ export default function AdminPage(){
       <div style={{maxWidth:1000,margin:"0 auto",padding:"24px"}}>
         {msg&&<div style={{padding:"12px 16px",borderRadius:12,marginBottom:16,background:msg.startsWith("❌")?"#FFF0F3":"#E8F5E9",fontSize:13,fontWeight:700,color:msg.startsWith("❌")?"#C4314B":"#1B5E3B"}}>{msg}</div>}
         <div style={{display:"flex",gap:8,marginBottom:24,flexWrap:"wrap"}}>
+          <button onClick={()=>{setTab("stats");setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="stats"?"#1D6FA5":P.card,color:tab==="stats"?"#FFF":P.textM,border:tab==="stats"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>📊 Statistiken</button>
           <button onClick={()=>{setTab("pending");setEditId(null);setEditInit(null);setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="pending"?"#BC6C25":P.card,color:tab==="pending"?"#FFF":P.textM,border:tab==="pending"?"none":`1.5px solid ${P.border}`,cursor:"pointer",position:"relative"}}>⏳ Wartet auf Freigabe ({rests.filter(r=>r.approval_status==="pending"||!r.approval_status).length}){rests.filter(r=>r.approval_status==="pending"||!r.approval_status).length>0&&<span style={{position:"absolute",top:-4,right:-4,width:10,height:10,background:"#C4314B",borderRadius:"50%"}}/>}</button>
           <button onClick={()=>{setTab("list");setEditId(null);setEditInit(null);setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="list"?P.accent:P.card,color:tab==="list"?"#FFF":P.textM,border:tab==="list"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>📋 Alle ({rests.length})</button>
           <button onClick={()=>{setTab("add");setEditId(null);setEditInit(null);setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="add"?P.accent:P.card,color:tab==="add"?"#FFF":P.textM,border:tab==="add"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>+ Neu</button>
           <button onClick={()=>{setTab("digi");setMsg("");}} style={{padding:"10px 20px",borderRadius:100,fontSize:13,fontWeight:700,background:tab==="digi"?"#BC6C25":P.card,color:tab==="digi"?"#FFF":P.textM,border:tab==="digi"?"none":`1.5px solid ${P.border}`,cursor:"pointer"}}>📸 Digi-Anfragen ({digiReqs.length})</button>
         </div>
+
+        {tab==="stats"&&<StatsView rests={rests}/>}
+
         {tab==="pending"&&(()=>{const pending=rests.filter(r=>r.approval_status==="pending"||!r.approval_status);return pending.length===0?(<div style={{textAlign:"center",padding:"60px",color:P.textM}}><div style={{fontSize:48}}>✨</div><p style={{fontWeight:700,marginTop:12}}>Keine Anmeldungen warten auf Freigabe.</p><p style={{fontSize:13,marginTop:6}}>Neue Lieferdienste, die sich registrieren, erscheinen hier.</p></div>):(<div style={{display:"grid",gap:10}}>{pending.map(r=>{const rz=(zones||[]).filter(z=>z.restaurant_id===r.id);const sb=statusBadge(r.approval_status);return(<div key={r.id} style={{background:P.card,borderRadius:16,padding:"18px 20px",border:`2px solid ${P.warm}40`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
           <div style={{display:"flex",alignItems:"center",gap:14,flex:1,minWidth:200}}>
             <div style={{width:44,height:44,borderRadius:12,background:`${r.color||"#2D6A4F"}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{CE[r.categories?.[0]]||"🍽️"}</div>
@@ -289,7 +459,6 @@ export default function AdminPage(){
         {tab==="add"&&<RestForm key="new" user={user} onSaved={handleSaved} onCancel={()=>{setTab("list");setMsg("");}}/>}
         {tab==="edit"&&editInit&&<RestForm key={editId} initial={editInit} editId={editId} user={user} onSaved={handleSaved} onCancel={()=>{setTab("list");setEditId(null);setEditInit(null);setMsg("");}}/>}
 
-        {/* DIGI REQUESTS */}
         {tab==="digi"&&(<div>
           {digiReqs.length===0?(<div style={{textAlign:"center",padding:"60px",color:P.textM}}><div style={{fontSize:48}}>📸</div><p style={{fontWeight:700,marginTop:12}}>Keine Digitalisierungs-Anfragen.</p></div>):(
             <div style={{display:"grid",gap:10}}>
