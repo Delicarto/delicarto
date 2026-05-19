@@ -11,21 +11,20 @@ const TIMES=[];for(let h=0;h<24;h++){TIMES.push(`${String(h).padStart(2,"0")}:00
 const DS=DAYS.map(()=>({closed:false,slots:[{open:"11:00",close:"22:00"}]}));
 const P={lila:"#2D6A4F",mint:"#40916C",rosa:"#D4A373",peach:"#E9C46A",text:"#1B2A1D",textM:"#6B7E6F",border:"#D5CCBB",bg:"#F5F0E8",card:"#FFFDF8",hero:"#EAE2D4",heroBg:"#F5F0E8",section1:"#E8F0E8",section2:"#FFF5EB",accent:"#2D6A4F",warm:"#D4A373",gold:"#E9C46A"};
 
-const Logo=({h=28,light=false,showTag=false})=>{return(<div style={{display:"flex",alignItems:"center",gap:h*0.32}}>
-  <svg width={h*0.82} height={h} viewBox="0 0 120 148" fill="none">
-    <path d="M60 6 C 31 6, 8 28, 8 56 C 8 90, 60 142, 60 142 C 60 142, 112 90, 112 56 C 112 28, 89 6, 60 6 Z" fill={light?"#FFFDF8":"#2D6A4F"}/>
-    <path d="M45 30 L45 56" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
-    <path d="M53 30 L53 56" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
-    <path d="M61 30 L61 56" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
-    <path d="M43 56 L63 56" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
-    <path d="M53 56 L53 102" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
-    <circle cx="53" cy="100" r="3" fill={light?"#1B2A1D":"#FFFDF8"}/>
+const Logo=({h=28,light=false,showTag=false})=>{const s=h/28;return(<div style={{display:"flex",alignItems:"center",gap:h*0.3}}>
+  <svg width={h*1.1} height={h} viewBox="0 0 34 30" fill="none">
+    <rect x="1" y="1" width="28" height="28" rx="7" stroke={light?"#FFF":"#2D6A4F"} strokeWidth="2.5" fill="none"/>
+    <rect x="4" y="4" width="22" height="22" rx="5" fill={light?"rgba(255,255,255,0.15)":"#2D6A4F"} opacity="0.12"/>
+    <path d="M12 22 C12 22 12 14 18 10" stroke={light?"rgba(255,255,255,0.3)":"#40916C"} strokeWidth="2" fill="none" strokeLinecap="round"/>
+    <path d="M10 20 C10 20 12 12 20 9" stroke={light?"rgba(255,255,255,0.2)":"#6BAF8D"} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+    <circle cx="18" cy="10" r="4.5" fill={light?"#FFF":"#2D6A4F"}/>
+    <circle cx="18" cy="10" r="2" fill={light?"#2D6A4F":"#FFFDF8"}/>
   </svg>
   <div>
-    <div style={{fontSize:h*0.9,fontWeight:600,color:light?"#FFFDF8":"#2D6A4F",letterSpacing:"-1px",lineHeight:1,fontFamily:"Georgia, 'Times New Roman', serif"}}>
-      DeliCarto
+    <div style={{fontSize:h*0.78,fontWeight:900,color:light?"#FFF":"#1B2A1D",letterSpacing:"-0.5px",lineHeight:1}}>
+      <span style={{color:light?"#FFF":"#6B7E6F"}}>Deli</span><span style={{color:light?"#FFF":"#1B2A1D"}}>carto</span>
     </div>
-    {showTag&&<div style={{fontSize:h*0.32,color:light?"rgba(255,255,255,0.5)":"#6B7E6F",fontWeight:600,marginTop:3,fontFamily:"system-ui, sans-serif"}}>Restaurants einfach digital.</div>}
+    {showTag&&<div style={{fontSize:h*0.32,color:light?"rgba(255,255,255,0.5)":"#6B7E6F",fontWeight:600,marginTop:1}}>Restaurants einfach digital.</div>}
   </div>
 </div>)};
 
@@ -57,14 +56,119 @@ function getAddr(r){return `${r.street} ${r.nr}, ${r.plz} ${r.city}`;}
 function findZone(r,plz){if(!plz||!r.zones)return null;return r.zones.find(z=>z.plz===plz)||null;}
 function deliversTo(r,plz){return!!findZone(r,plz);}
 
-// Tagesrotation: Premium-Restaurants werden jeden Tag in anderer Reihenfolge angezeigt.
-// Das ist fair (jeder ist mal oben) und konsistent (innerhalb des Tages bleibt die Reihenfolge).
-function dayRotate(arr){
-  if(!arr||arr.length<=1)return arr;
-  const today=new Date();
-  const dayOfYear=Math.floor((today-new Date(today.getFullYear(),0,0))/86400000);
-  const offset=dayOfYear%arr.length;
-  return[...arr.slice(offset),...arr.slice(0,offset)];
+// ===== BILDER-POOL: 5-6 Bilder pro Küche, deterministisch zugewiesen per Restaurant-Name =====
+const IMG_POOL={
+  "Italienisch":[
+    "photo-1513104890138-7c749659a591", // Pizza
+    "photo-1565299624946-b28f40a0ae38", // Pizza-Detail
+    "photo-1551183053-bf91a1d81141", // Pasta
+    "photo-1555072956-7758afb20e8f", // Pasta Carbonara
+    "photo-1574894709920-11b28e7367e3", // Caprese
+    "photo-1547592180-85f173990554", // Risotto
+  ],
+  "Türkisch":[
+    "photo-1599974579688-8dbdd335c77f", // Kebab
+    "photo-1644271710001-c2c14156a4e6", // Döner
+    "photo-1561651823-34feb02250e4", // Lahmacun
+    "photo-1530469912745-a215c6b256ea", // Köfte
+    "photo-1601050690597-df0568f70950", // Pide
+  ],
+  "Vietnamesisch":[
+    "photo-1555126634-323283e090fa", // Pho
+    "photo-1576577445504-6af96477db52", // Banh Mi
+    "photo-1583032015879-e5022cb87c3b", // Pho Detail
+    "photo-1612929633738-8fe44f7ec841", // Bun Cha
+    "photo-1559314809-0d155014e29e", // Spring Rolls
+  ],
+  "Japanisch":[
+    "photo-1579871494447-9811cf80d66c", // Sushi
+    "photo-1617196034796-73dfa7b1fd56", // Ramen
+    "photo-1580822184713-fc5400e7fe10", // Sushi-Platte
+    "photo-1569718212165-3a8278d5f624", // Sushi-Set
+    "photo-1632789395770-20e6f63be806", // Bento
+  ],
+  "Indisch":[
+    "photo-1585937421612-70a008356fbe", // Curry
+    "photo-1567337710282-00832b415979", // Tikka Masala
+    "photo-1565557623262-b51c2513a641", // Naan & Curry
+    "photo-1631452180519-c014fe946bc7", // Tandoori
+    "photo-1505253758473-96b7015fcd40", // Biryani
+  ],
+  "Griechisch":[
+    "photo-1504674900247-0877df9cc836", // Salat
+    "photo-1565299507177-b0ac66763828", // Gyros
+    "photo-1546833999-b9f581a1996d", // Souvlaki
+    "photo-1551183053-bf91a1d81141", // Mediterranean
+    "photo-1540420773420-3366772f4999", // Greek Salad
+  ],
+  "Chinesisch":[
+    "photo-1563245372-f21724e3856d", // Asian Noodles
+    "photo-1582450871972-ab5ca641643d", // Dim Sum
+    "photo-1525755662778-989d0524087e", // Stir Fry
+    "photo-1552611052-33e04de081de", // Chinese Food
+    "photo-1585032226651-759b368d7246", // Asia-Box
+  ],
+  "Mexikanisch":[
+    "photo-1565299585323-38d6b0865b47", // Tacos
+    "photo-1599974579688-8dbdd335c77f", // Burrito
+    "photo-1551504734-5ee1c4a1479b", // Quesadilla
+    "photo-1551782450-a2132b4ba21d", // Tacos-Detail
+    "photo-1565299715199-866c917206bb", // Mexican Mix
+  ],
+  "Deutsch":[
+    "photo-1600891964092-4316c288032e", // Schnitzel
+    "photo-1542528180-a1208c5169a5", // Bratwurst
+    "photo-1601314002957-78a8e5e30f86", // German Food
+    "photo-1623653387945-2fd25214f8fc", // Currywurst
+    "photo-1574484284002-952d92456975", // Brezel
+  ],
+  "Burger":[
+    "photo-1568901346375-23c9450c58cd", // Burger
+    "photo-1572802419224-296b0aeee0d9", // Cheeseburger
+    "photo-1586190848861-99aa4a171e90", // Burger-Stack
+    "photo-1606131731446-5568d87113aa", // Smash Burger
+    "photo-1550317138-10000687a72b", // Burger & Fries
+  ],
+  "Vegan":[
+    "photo-1512621776951-a57141f2eefd", // Buddha Bowl
+    "photo-1540420773420-3366772f4999", // Salad Bowl
+    "photo-1546069901-ba9599a7e63c", // Healthy Bowl
+    "photo-1547496502-affa22d38842", // Veggie Plate
+    "photo-1490645935967-10de6ba17061", // Avocado Toast
+  ],
+  "Vegetarisch":[
+    "photo-1490645935967-10de6ba17061", // Veggie
+    "photo-1512621776951-a57141f2eefd", // Bowl
+    "photo-1540420773420-3366772f4999", // Salat
+    "photo-1547496502-affa22d38842", // Vegetarian
+    "photo-1567337710282-00832b415979", // Veggie Curry
+  ],
+  "Halal":[
+    "photo-1644271710001-c2c14156a4e6", // Kebab
+    "photo-1530469912745-a215c6b256ea", // Köfte
+    "photo-1599974579688-8dbdd335c77f", // Türkisch
+    "photo-1601050690597-df0568f70950", // Pide
+  ],
+  "Sonstiges":[
+    "photo-1504674900247-0877df9cc836", // Mediterranean
+    "photo-1565299715199-866c917206bb", // Mixed
+    "photo-1546833999-b9f581a1996d", // Food
+    "photo-1551183053-bf91a1d81141", // Plate
+  ],
+};
+
+// Hash-Funktion: Macht aus einem Restaurant-Namen eine konstante Zahl.
+// "Bella Pizza" liefert IMMER den gleichen Wert — egal wie oft die Seite neu geladen wird.
+function nameHash(s){if(!s)return 0;let h=0;for(let i=0;i<s.length;i++)h=((h<<5)-h)+s.charCodeAt(i)|0;return Math.abs(h);}
+
+// Wählt für ein Restaurant das passende Bild aus dem Pool — basierend auf Name.
+// Gleiches Restaurant → immer gleiches Bild. Verschiedene Restaurants → verschiedene Bilder.
+function pickImage(restaurant,size){
+  const w=size==="big"?800:400;
+  const cat=(restaurant.cats&&restaurant.cats[0])||"Sonstiges";
+  const pool=IMG_POOL[cat]||IMG_POOL["Sonstiges"];
+  const id=pool[nameHash(restaurant.name||"")%pool.length];
+  return `https://images.unsplash.com/${id}?w=${w}&q=70`;
 }
 
 const Inp=({label,ph,val,onChange,w})=>(<div style={{width:w||"100%"}}><label style={{fontSize:11,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"0.5px",display:"block",marginBottom:6}}>{label}</label><input type="text" placeholder={ph} value={val} onChange={onChange} style={{width:"100%",padding:"14px 16px",fontSize:15,fontWeight:500,border:`1.5px solid ${P.border}`,borderRadius:12,background:"#FFF",color:P.text,fontFamily:"inherit"}}/></div>);
@@ -423,10 +527,10 @@ export default function App(){
           {viewed.length>0&&!search&&selCat==="Alle"&&(<div style={{marginBottom:24}}><div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🕐 Zuletzt angesehen</div><div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:6}}>{viewed.map(r=>{const z=plzSearch?findZone(r,plzSearch):null;return(<div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:190,background:P.card,borderRadius:14,padding:"14px 16px",border:`1.5px solid ${P.border}`,cursor:"pointer"}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><div style={{width:32,height:32,borderRadius:10,background:`${r.col}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{CE[r.cats[0]]}</div><div style={{fontSize:14,fontWeight:800,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div></div><div style={{display:"flex",gap:4}}><span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:isDelivering(r)?"#E8FFF3":"#FFF0F3",color:isDelivering(r)?"#1B5E3B":"#C4314B"}}>{isDelivering(r)?"Lieferung möglich":"Keine Lieferung"}</span>{z&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#E8F4FD",color:"#1D6FA5"}}>{z.cost}</span>}</div></div>);})}</div></div>)}
 
           {/* NEW ENTRIES SLIDER */}
-          {!search&&selCat==="Alle"&&viewed.length===0&&(()=>{const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70"};const newest=[...rests].sort((a,b)=>(b.added||"").localeCompare(a.added||"")).slice(0,5);return newest.length>0?(<div style={{marginBottom:28}}>
+          {!search&&selCat==="Alle"&&viewed.length===0&&(()=>{const newest=[...rests].sort((a,b)=>(b.added||"").localeCompare(a.added||"")).slice(0,5);return newest.length>0?(<div style={{marginBottom:28}}>
             <div style={{fontSize:12,fontWeight:700,color:P.textM,textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}}>🆕 Neu auf DeliCarto</div>
             <div style={{display:"flex",gap:12,overflowX:"auto",paddingBottom:8,WebkitOverflowScrolling:"touch"}}>
-              {newest.map(r=>{const op=isDelivering(r),z=plzSearch?findZone(r,plzSearch):null;const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";return(
+              {newest.map(r=>{const op=isDelivering(r),z=plzSearch?findZone(r,plzSearch):null;const bgImg=r.imageUrl||pickImage(r,"small");return(
                 <div key={r.id} onClick={()=>openDetail(r)} style={{flexShrink:0,width:240,background:P.card,borderRadius:16,overflow:"hidden",border:`1.5px solid ${P.border}`,cursor:"pointer"}} className="card">
                   <div style={{height:120,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
                     <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
@@ -452,12 +556,10 @@ export default function App(){
           </div>
 
           {/* PREMIUM SECTION — separate from regular results */}
-          {(()=>{const premFiltered=dayRotate(filtered.filter(r=>r.prem));const regFiltered=filtered.filter(r=>!r.prem);
+          {(()=>{const premFiltered=filtered.filter(r=>r.prem);const regFiltered=filtered.filter(r=>!r.prem);
 
           const RestCard=({r,i,isPrem})=>{const op=isDelivering(r),th=delivTodayH(r),z=plzSearch?findZone(r,plzSearch):null;
-            // Default images per category
-            const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Vietnamesisch":"https://images.unsplash.com/photo-1555126634-323283e090fa?w=400&q=70","Japanisch":"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&q=70","Indisch":"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=70","Griechisch":"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70","Chinesisch":"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=70","Mexikanisch":"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70"};
-            const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";
+            const bgImg=r.imageUrl||pickImage(r,"small");
             return(
             <div key={r.id} className="card" onClick={()=>openDetail(r)} style={{background:P.card,borderRadius:16,overflow:"hidden",animation:`fadeUp 0.4s ease ${i*0.04}s both`,position:"relative",border:isPrem?`2px solid ${P.accent}40`:`1.5px solid ${P.border}`}}>
               {/* Image */}
@@ -511,8 +613,7 @@ export default function App(){
         </>):(
           /* DETAIL VIEW */
           (()=>{const dlv=isDelivering(selRest),z=plzSearch?findZone(selRest,plzSearch):null;
-            const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=800&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&q=70"};
-            const heroImg=defImgs[selRest.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=70";
+            const heroImg=pickImage(selRest,"big");
           return(<div style={{animation:"fadeUp 0.3s ease"}}>
 
             {/* Hero Image */}
@@ -608,78 +709,6 @@ export default function App(){
       {/* Only show these sections on the landing page */}
       {!searching&&!selRest&&(<>
 
-      {/* ============ SEKTION 1: BELIEBTE LIEFERDIENSTE ============ */}
-      {rests.length>0&&(()=>{const defImgs={"Italienisch":"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70","Türkisch":"https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&q=70","Vietnamesisch":"https://images.unsplash.com/photo-1555126634-323283e090fa?w=400&q=70","Japanisch":"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&q=70","Indisch":"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=70","Griechisch":"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70","Chinesisch":"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=70","Mexikanisch":"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&q=70","Deutsch":"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=70","Burger":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70"};
-      const featuredPrem=dayRotate(rests.filter(r=>r.prem));
-      const featuredOther=[...rests.filter(r=>!r.prem)].sort((a,b)=>(b.added||"").localeCompare(a.added||""));
-      const featured=[...featuredPrem,...featuredOther].slice(0,4);
-      return featured.length>0?(<Reveal style={{padding:"80px 24px 60px",background:P.heroBg}}>
-        <div style={{maxWidth:1100,margin:"0 auto"}}>
-          <div style={{textAlign:"center",marginBottom:40}}>
-            <span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"2px"}}>🔥 Live auf DeliCarto</span>
-            <h2 style={{fontSize:32,fontWeight:900,marginTop:8,letterSpacing:"-0.5px"}}>Beliebte Lieferdienste</h2>
-            <p style={{color:P.textM,fontSize:16,marginTop:8}}>Frisch eingetragen, sofort bestellbar.</p>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(240px, 1fr))",gap:20}}>
-            {featured.map((r,i)=>{const op=isDelivering(r);const bgImg=r.imageUrl||defImgs[r.cats[0]]||"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70";const ds=r.delivSched||r.sched;const d=ds?.[DIM[new Date().getDay()]];let statusText="Geschlossen";if(d&&d.closed)statusText="Heute Ruhetag";else if(op){const now=new Date().getHours()*60+new Date().getMinutes();if(d&&d.slots){for(const sl of d.slots){const[ch,cm]=sl.close.split(":").map(Number);const c=ch*60+cm;const[oh,om]=sl.open.split(":").map(Number);const o=oh*60+om;if(c<=o?(now>=o||now<=c):(now>=o&&now<=c)){statusText=`Geöffnet bis ${sl.close} Uhr`;break;}}}}
-            return(<div key={r.id} className="card" onClick={()=>{setSearching(true);setPlzSearch("");setTimeout(()=>openDetail(r),100);}} style={{background:P.card,borderRadius:16,overflow:"hidden",cursor:"pointer",border:r.prem?`2px solid ${P.accent}40`:`1.5px solid ${P.border}`,animation:`fadeUp 0.4s ease ${i*0.05}s both`}}>
-              <div style={{height:140,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
-                <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                <div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.85)",color:"#FFF",textAlign:"center",fontSize:11,fontWeight:700,padding:"5px"}}>{statusText}</div>
-                {r.prem&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(45,106,79,0.95)",color:"#FFF",fontSize:9,fontWeight:800,padding:"3px 10px",borderRadius:100,letterSpacing:"0.5px"}}>⭐ PRO</div>}
-                {r.imageUrl&&<div style={{position:"absolute",bottom:10,right:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
-              </div>
-              <div style={{padding:"14px 16px"}}>
-                <div style={{fontSize:16,fontWeight:800,marginBottom:4}}>{r.name}</div>
-                <div style={{fontSize:12,color:P.textM,marginBottom:6}}>{r.cats.slice(0,2).join(", ")}</div>
-                <div style={{fontSize:12,color:P.textM}}>Min. {r.min} · {r.city}</div>
-                <div style={{color:P.accent,fontWeight:700,fontSize:13,marginTop:10,paddingTop:10,borderTop:`1px solid ${P.border}`}}>Zur Speisekarte →</div>
-              </div>
-            </div>);})}
-          </div>
-          {rests.length>4&&<div style={{textAlign:"center",marginTop:32}}><button onClick={()=>{setSearching(true);setPlzSearch("");setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}} className="btn2" style={{background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"14px 30px",fontSize:14,fontWeight:700,color:P.accent,cursor:"pointer"}}>Alle {rests.length} Lieferdienste anzeigen →</button></div>}
-        </div>
-      </Reveal>):null;})()}
-
-      {/* ============ SEKTION 2: KÜCHEN-KACHELN ============ */}
-      {rests.length>0&&(()=>{const counts={};rests.forEach(r=>{(r.cats||[]).forEach(c=>{counts[c]=(counts[c]||0)+1;});});const cuisineList=Object.entries(counts).filter(([c])=>c!=="Alle").sort((a,b)=>b[1]-a[1]).slice(0,8);
-      return cuisineList.length>0?(<Reveal style={{padding:"60px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
-        <div style={{maxWidth:1100,margin:"0 auto"}}>
-          <div style={{textAlign:"center",marginBottom:40}}>
-            <span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"2px"}}>Stöbern</span>
-            <h2 style={{fontSize:32,fontWeight:900,marginTop:8,letterSpacing:"-0.5px"}}>Worauf hast du Lust?</h2>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))",gap:16}}>
-            {cuisineList.map(([cuisine,count])=>(<div key={cuisine} onClick={()=>{setSelCat(cuisine);setSearching(true);setPlzSearch("");setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}} style={{background:P.card,borderRadius:18,padding:"24px 16px",textAlign:"center",border:`1.5px solid ${P.border}`,cursor:"pointer",transition:"all 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.borderColor=P.accent;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.borderColor=P.border;}}>
-              <div style={{fontSize:38,marginBottom:8}}>{CE[cuisine]||"🍽️"}</div>
-              <div style={{fontSize:14,fontWeight:800,marginBottom:2}}>{cuisine}</div>
-              <div style={{fontSize:11,color:P.textM,fontWeight:600}}>{count} Lieferdienst{count!==1?"e":""}</div>
-            </div>))}
-          </div>
-        </div>
-      </Reveal>):null;})()}
-
-      {/* ============ SEKTION 3: VERTRAUENS-ZAHLEN ============ */}
-      {rests.length>0&&(<Reveal style={{padding:"60px 24px",background:P.heroBg,borderTop:`1px solid ${P.border}`,borderBottom:`1px solid ${P.border}`}}>
-        <div style={{maxWidth:900,margin:"0 auto"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:24,textAlign:"center"}}>
-            <div>
-              <div style={{fontSize:48,fontWeight:900,color:P.accent,letterSpacing:"-1px",lineHeight:1,marginBottom:8}}>{rests.length}</div>
-              <div style={{fontSize:13,color:P.textM,fontWeight:600,textTransform:"uppercase",letterSpacing:"1.5px"}}>Lieferdienste</div>
-            </div>
-            <div>
-              <div style={{fontSize:48,fontWeight:900,color:P.accent,letterSpacing:"-1px",lineHeight:1,marginBottom:8}}>{rests.filter(r=>r.pdfUrl).length}+</div>
-              <div style={{fontSize:13,color:P.textM,fontWeight:600,textTransform:"uppercase",letterSpacing:"1.5px"}}>Speisekarten</div>
-            </div>
-            <div>
-              <div style={{fontSize:48,fontWeight:900,color:P.accent,letterSpacing:"-1px",lineHeight:1,marginBottom:8}}>0%</div>
-              <div style={{fontSize:13,color:P.textM,fontWeight:600,textTransform:"uppercase",letterSpacing:"1.5px"}}>Provision</div>
-            </div>
-          </div>
-          <div style={{textAlign:"center",marginTop:32,fontSize:13,color:P.textM,fontWeight:600}}>Made in Germany · Direkt vom Lieferanten · {new Date().getFullYear()}</div>
-        </div>
-      </Reveal>)}
-
       {/* SO FUNKTIONIERT'S */}
       <Reveal id="how" style={{padding:"80px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
         <div style={{maxWidth:1000,margin:"0 auto"}}>
@@ -711,32 +740,14 @@ export default function App(){
         {[{q:"Was kostet DeliCarto für mich?",a:"Nichts. DeliCarto ist für Kunden komplett kostenlos."},{q:"Wie bestelle ich?",a:"Du findest die Speisekarte, rufst direkt beim Lieferdienst an oder schreibst per WhatsApp. Keine Zwischenhändler."},{q:"Warum nicht Lieferando?",a:"Lieferando nimmt bis zu 30% Provision. Hier bestellt der Kunde direkt — das Essen kann günstiger sein."},{q:"Woher kommen die Lieferkosten?",a:"Jeder Lieferdienst legt seine Liefergebiete und Kosten selbst fest. Die Preise siehst du direkt auf der Karte."},{q:"Wie kann ich meinen Lieferdienst eintragen?",a:"Klicke oben auf 'Lieferdienst eintragen', registriere dich kostenlos und lade deine Speisekarte als PDF hoch. In unter 5 Minuten bist du online — ohne Provision, ohne Vertrag."}].map((f,i)=>(<div key={i} className="clift" style={{background:P.card,borderRadius:14,border:`1.5px solid ${P.border}`,overflow:"hidden",cursor:"pointer"}} onClick={()=>setOpenFaq(openFaq===i?null:i)}><div style={{padding:"18px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3 style={{fontSize:15,fontWeight:700}}>{f.q}</h3><span style={{fontSize:18,color:P.accent,fontWeight:800,transition:"transform 0.3s",transform:openFaq===i?"rotate(45deg)":"none",flexShrink:0,marginLeft:10}}>+</span></div>{openFaq===i&&<div style={{padding:"0 22px 18px"}}><p style={{fontSize:14,color:P.textM,lineHeight:1.7}}>{f.a}</p></div>}</div>))}
       </div></Reveal>
 
-      {/* ============ SEKTION 5: GROSSER LIEFERDIENST-CTA ============ */}
-      <Reveal style={{padding:"80px 24px",background:`linear-gradient(135deg, ${P.accent}, #40916C)`}}>
-        <div style={{maxWidth:1000,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:60,alignItems:"center"}} className="biz-grid">
-          <div style={{color:"#FFF"}}>
-            <span style={{display:"inline-block",background:"rgba(255,255,255,0.15)",padding:"6px 14px",borderRadius:100,fontSize:12,fontWeight:700,marginBottom:16,letterSpacing:"1px",textTransform:"uppercase"}}>Für Lieferdienste</span>
-            <h2 style={{fontSize:40,fontWeight:900,marginBottom:14,lineHeight:1.1,letterSpacing:"-1px"}}>Stell dich vor.<br/>Provisionsfrei.</h2>
-            <p style={{fontSize:16,opacity:0.9,lineHeight:1.6,marginBottom:24}}>Trage deinen Laden kostenlos ein und werde von Kunden in deiner Nähe gefunden. Keine Provision, keine versteckten Kosten — nur deine Speisekarte und glückliche Stammkunden.</p>
-            <div style={{marginBottom:28}}>
-              {[{t:"Kostenlos eintragen — für immer"},{t:"0% Provision auf jede Bestellung"},{t:"Eigener Online-Auftritt in 5 Minuten"},{t:"Optional: Premium für Top-Platzierung"}].map((x,i)=>(<div key={i} style={{padding:"8px 0",fontSize:15,display:"flex",alignItems:"center",gap:10}}><span style={{background:"rgba(255,255,255,0.2)",width:24,height:24,borderRadius:"50%",display:"inline-flex",alignItems:"center",justifyContent:"center",fontWeight:900,flexShrink:0}}>✓</span>{x.t}</div>))}
-            </div>
-            <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"#FFF",color:P.accent,borderRadius:100,padding:"14px 32px",fontSize:15,fontWeight:800,border:"none",boxShadow:"0 8px 24px rgba(0,0,0,0.15)",cursor:"pointer"}}>Jetzt anmelden — kostenlos →</button>
-          </div>
-          <div style={{background:"#FFF",borderRadius:24,padding:24,boxShadow:"0 20px 60px rgba(0,0,0,0.2)"}}>
-            {(()=>{const topByViews=[...rests].filter(r=>r.views).sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,3);const fallback=[{name:"Pizzeria Da Luigi",emoji:"🍕",views:847,growth:"+34%"},{name:"Kebab König",emoji:"🥙",views:1203,growth:"+58%"},{name:"Taco Loco",emoji:"🌮",views:678,growth:"+22%"}];const items=topByViews.length>=3?topByViews.map((r,i)=>({name:r.name,emoji:CE[r.cats[0]]||"🍽️",views:r.views,growth:["+34%","+58%","+22%"][i]||"+12%"})):fallback;
-            return items.map((item,i)=>(<div key={i} style={{background:P.card,border:`1.5px solid ${P.border}`,borderRadius:14,padding:14,marginBottom:i<items.length-1?12:0,display:"flex",alignItems:"center",gap:12}}>
-              <div style={{fontSize:32}}>{item.emoji}</div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontWeight:800,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</div>
-                <div style={{fontSize:11,color:P.textM}}>{item.views} Aufrufe diesen Monat</div>
-              </div>
-              <div style={{fontSize:11,color:P.accent,fontWeight:700,background:"#E8F0E8",padding:"4px 10px",borderRadius:8,whiteSpace:"nowrap"}}>{item.growth}</div>
-            </div>));})()}
-          </div>
+      {/* CTA BANNER */}
+      <div style={{background:`linear-gradient(135deg, ${P.accent}, #40916C)`,padding:"40px 24px",textAlign:"center"}}>
+        <div style={{maxWidth:600,margin:"0 auto"}}>
+          <h2 style={{fontSize:24,fontWeight:900,color:"#FFF",marginBottom:10}}>Du betreibst einen Lieferdienst?</h2>
+          <p style={{fontSize:14,color:"rgba(255,255,255,0.8)",lineHeight:1.6,marginBottom:20}}>Trage deinen Laden kostenlos ein und werde von Kunden in deiner Nähe gefunden. Keine Provision, keine versteckten Kosten.</p>
+          <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"#FFF",color:P.accent,borderRadius:100,padding:"12px 32px",fontSize:15,fontWeight:700,border:"none",boxShadow:"0 4px 16px rgba(0,0,0,0.2)"}}>Jetzt kostenlos eintragen →</button>
         </div>
-        <style>{`@media(max-width:768px){.biz-grid{grid-template-columns:1fr!important;gap:32px!important}}`}</style>
-      </Reveal>
+      </div>
 
       {/* FOOTER — Lieferando-style */}
       <footer style={{background:"#1B2A1D",color:"rgba(255,255,255,0.5)",padding:"48px 24px 28px"}}>
