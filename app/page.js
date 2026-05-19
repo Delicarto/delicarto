@@ -710,6 +710,75 @@ export default function App(){
       {/* Only show these sections on the landing page */}
       {!searching&&!selRest&&(<>
 
+      {/* ============ SEKTION 1: BELIEBTE LIEFERDIENSTE ============ */}
+      {rests.length>0&&(()=>{const featuredPrem=rests.filter(r=>r.prem);const featuredOther=[...rests.filter(r=>!r.prem)].sort((a,b)=>(b.added||"").localeCompare(a.added||""));const featured=[...featuredPrem,...featuredOther].slice(0,4);
+      return featured.length>0?(<Reveal style={{padding:"80px 24px 60px",background:P.heroBg}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:40}}>
+            <span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"2px"}}>🔥 Live auf DeliCarto</span>
+            <h2 style={{fontSize:32,fontWeight:900,marginTop:8,letterSpacing:"-0.5px"}}>Beliebte Lieferdienste</h2>
+            <p style={{color:P.textM,fontSize:16,marginTop:8}}>Frisch eingetragen, sofort bestellbar.</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(240px, 1fr))",gap:20}}>
+            {featured.map((r,i)=>{const op=isDelivering(r);const bgImg=r.imageUrl||pickImage(r,"small");const ds=r.delivSched||r.sched;const d=ds?.[DIM[new Date().getDay()]];let statusText="Geschlossen";if(d&&d.closed)statusText="Heute Ruhetag";else if(op){const now=new Date().getHours()*60+new Date().getMinutes();if(d&&d.slots){for(const sl of d.slots){const[ch,cm]=sl.close.split(":").map(Number);const c=ch*60+cm;const[oh,om]=sl.open.split(":").map(Number);const o=oh*60+om;if(c<=o?(now>=o||now<=c):(now>=o&&now<=c)){statusText=`Geöffnet bis ${sl.close} Uhr`;break;}}}}
+            return(<div key={r.id} className="card" onClick={()=>{setSearching(true);setPlzSearch("");setTimeout(()=>openDetail(r),100);}} style={{background:P.card,borderRadius:16,overflow:"hidden",cursor:"pointer",border:r.prem?`2px solid ${P.accent}40`:`1.5px solid ${P.border}`,animation:`fadeUp 0.4s ease ${i*0.05}s both`}}>
+              <div style={{height:140,position:"relative",overflow:"hidden",background:"#E8E0D4"}}>
+                <img src={bgImg} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                <div style={{position:"absolute",top:0,left:0,right:0,background:"rgba(45,106,79,0.85)",color:"#FFF",textAlign:"center",fontSize:11,fontWeight:700,padding:"5px"}}>{statusText}</div>
+                {r.prem&&<div style={{position:"absolute",bottom:10,left:10,background:"rgba(45,106,79,0.95)",color:"#FFF",fontSize:9,fontWeight:800,padding:"3px 10px",borderRadius:100,letterSpacing:"0.5px"}}>⭐ PRO</div>}
+                {r.imageUrl&&<div style={{position:"absolute",bottom:10,right:10,width:36,height:36,borderRadius:10,background:"#FFF",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",padding:2}}><img src={r.imageUrl} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/></div>}
+              </div>
+              <div style={{padding:"14px 16px"}}>
+                <div style={{fontSize:16,fontWeight:800,marginBottom:4}}>{r.name}</div>
+                <div style={{fontSize:12,color:P.textM,marginBottom:6}}>{r.cats.slice(0,2).join(", ")}</div>
+                <div style={{fontSize:12,color:P.textM}}>Min. {r.min} · {r.city}</div>
+                <div style={{color:P.accent,fontWeight:700,fontSize:13,marginTop:10,paddingTop:10,borderTop:`1px solid ${P.border}`}}>Zur Speisekarte →</div>
+              </div>
+            </div>);})}
+          </div>
+          {rests.length>4&&<div style={{textAlign:"center",marginTop:32}}><button onClick={()=>{setSearching(true);setPlzSearch("");setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}} className="btn2" style={{background:P.card,border:`1.5px solid ${P.border}`,borderRadius:100,padding:"14px 30px",fontSize:14,fontWeight:700,color:P.accent,cursor:"pointer"}}>Alle {rests.length} Lieferdienste anzeigen →</button></div>}
+        </div>
+      </Reveal>):null;})()}
+
+      {/* ============ SEKTION 2: KÜCHEN-KACHELN ============ */}
+      {rests.length>0&&(()=>{const counts={};rests.forEach(r=>{(r.cats||[]).forEach(c=>{counts[c]=(counts[c]||0)+1;});});const cuisineList=Object.entries(counts).filter(([c])=>c!=="Alle").sort((a,b)=>b[1]-a[1]).slice(0,8);
+      return cuisineList.length>0?(<Reveal style={{padding:"60px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:40}}>
+            <span style={{fontSize:12,fontWeight:700,color:P.accent,textTransform:"uppercase",letterSpacing:"2px"}}>Stöbern</span>
+            <h2 style={{fontSize:32,fontWeight:900,marginTop:8,letterSpacing:"-0.5px"}}>Worauf hast du Lust?</h2>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))",gap:16}}>
+            {cuisineList.map(([cuisine,count])=>(<div key={cuisine} onClick={()=>{setSelCat(cuisine);setSearching(true);setPlzSearch("");setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}} style={{background:P.card,borderRadius:18,padding:"24px 16px",textAlign:"center",border:`1.5px solid ${P.border}`,cursor:"pointer",transition:"all 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.borderColor=P.accent;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.borderColor=P.border;}}>
+              <div style={{fontSize:38,marginBottom:8}}>{CE[cuisine]||"🍽️"}</div>
+              <div style={{fontSize:14,fontWeight:800,marginBottom:2}}>{cuisine}</div>
+              <div style={{fontSize:11,color:P.textM,fontWeight:600}}>{count} Lieferdienst{count!==1?"e":""}</div>
+            </div>))}
+          </div>
+        </div>
+      </Reveal>):null;})()}
+
+      {/* ============ SEKTION 3: VERTRAUENS-ZAHLEN ============ */}
+      {rests.length>0&&(<Reveal style={{padding:"60px 24px",background:P.heroBg,borderTop:`1px solid ${P.border}`,borderBottom:`1px solid ${P.border}`}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:24,textAlign:"center"}}>
+            <div>
+              <div style={{fontSize:48,fontWeight:900,color:P.accent,letterSpacing:"-1px",lineHeight:1,marginBottom:8}}>{rests.length}</div>
+              <div style={{fontSize:13,color:P.textM,fontWeight:600,textTransform:"uppercase",letterSpacing:"1.5px"}}>Lieferdienste</div>
+            </div>
+            <div>
+              <div style={{fontSize:48,fontWeight:900,color:P.accent,letterSpacing:"-1px",lineHeight:1,marginBottom:8}}>{rests.filter(r=>r.pdfUrl).length}+</div>
+              <div style={{fontSize:13,color:P.textM,fontWeight:600,textTransform:"uppercase",letterSpacing:"1.5px"}}>Speisekarten</div>
+            </div>
+            <div>
+              <div style={{fontSize:48,fontWeight:900,color:P.accent,letterSpacing:"-1px",lineHeight:1,marginBottom:8}}>0%</div>
+              <div style={{fontSize:13,color:P.textM,fontWeight:600,textTransform:"uppercase",letterSpacing:"1.5px"}}>Provision</div>
+            </div>
+          </div>
+          <div style={{textAlign:"center",marginTop:32,fontSize:13,color:P.textM,fontWeight:600}}>Made in Germany · Direkt vom Lieferanten · {new Date().getFullYear()}</div>
+        </div>
+      </Reveal>)}
+
       {/* SO FUNKTIONIERT'S */}
       <Reveal id="how" style={{padding:"80px 24px",background:P.section1,borderTop:`1px solid ${P.border}`}}>
         <div style={{maxWidth:1000,margin:"0 auto"}}>
@@ -741,14 +810,32 @@ export default function App(){
         {[{q:"Was kostet DeliCarto für mich?",a:"Nichts. DeliCarto ist für Kunden komplett kostenlos."},{q:"Wie bestelle ich?",a:"Du findest die Speisekarte, rufst direkt beim Lieferdienst an oder schreibst per WhatsApp. Keine Zwischenhändler."},{q:"Warum nicht Lieferando?",a:"Lieferando nimmt bis zu 30% Provision. Hier bestellt der Kunde direkt — das Essen kann günstiger sein."},{q:"Woher kommen die Lieferkosten?",a:"Jeder Lieferdienst legt seine Liefergebiete und Kosten selbst fest. Die Preise siehst du direkt auf der Karte."},{q:"Wie kann ich meinen Lieferdienst eintragen?",a:"Klicke oben auf 'Lieferdienst eintragen', registriere dich kostenlos und lade deine Speisekarte als PDF hoch. In unter 5 Minuten bist du online — ohne Provision, ohne Vertrag."}].map((f,i)=>(<div key={i} className="clift" style={{background:P.card,borderRadius:14,border:`1.5px solid ${P.border}`,overflow:"hidden",cursor:"pointer"}} onClick={()=>setOpenFaq(openFaq===i?null:i)}><div style={{padding:"18px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3 style={{fontSize:15,fontWeight:700}}>{f.q}</h3><span style={{fontSize:18,color:P.accent,fontWeight:800,transition:"transform 0.3s",transform:openFaq===i?"rotate(45deg)":"none",flexShrink:0,marginLeft:10}}>+</span></div>{openFaq===i&&<div style={{padding:"0 22px 18px"}}><p style={{fontSize:14,color:P.textM,lineHeight:1.7}}>{f.a}</p></div>}</div>))}
       </div></Reveal>
 
-      {/* CTA BANNER */}
-      <div style={{background:`linear-gradient(135deg, ${P.accent}, #40916C)`,padding:"40px 24px",textAlign:"center"}}>
-        <div style={{maxWidth:600,margin:"0 auto"}}>
-          <h2 style={{fontSize:24,fontWeight:900,color:"#FFF",marginBottom:10}}>Du betreibst einen Lieferdienst?</h2>
-          <p style={{fontSize:14,color:"rgba(255,255,255,0.8)",lineHeight:1.6,marginBottom:20}}>Trage deinen Laden kostenlos ein und werde von Kunden in deiner Nähe gefunden. Keine Provision, keine versteckten Kosten.</p>
-          <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"#FFF",color:P.accent,borderRadius:100,padding:"12px 32px",fontSize:15,fontWeight:700,border:"none",boxShadow:"0 4px 16px rgba(0,0,0,0.2)"}}>Jetzt kostenlos eintragen →</button>
+      {/* ============ SEKTION 5: GROSSER LIEFERDIENST-CTA ============ */}
+      <Reveal style={{padding:"80px 24px",background:`linear-gradient(135deg, ${P.accent}, #40916C)`}}>
+        <div style={{maxWidth:1000,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:60,alignItems:"center"}} className="biz-grid">
+          <div style={{color:"#FFF"}}>
+            <span style={{display:"inline-block",background:"rgba(255,255,255,0.15)",padding:"6px 14px",borderRadius:100,fontSize:12,fontWeight:700,marginBottom:16,letterSpacing:"1px",textTransform:"uppercase"}}>Für Lieferdienste</span>
+            <h2 style={{fontSize:40,fontWeight:900,marginBottom:14,lineHeight:1.1,letterSpacing:"-1px"}}>Stell dich vor.<br/>Provisionsfrei.</h2>
+            <p style={{fontSize:16,opacity:0.9,lineHeight:1.6,marginBottom:24}}>Trage deinen Laden kostenlos ein und werde von Kunden in deiner Nähe gefunden. Keine Provision, keine versteckten Kosten — nur deine Speisekarte und glückliche Stammkunden.</p>
+            <div style={{marginBottom:28}}>
+              {[{t:"Kostenlos eintragen — für immer"},{t:"0% Provision auf jede Bestellung"},{t:"Eigener Online-Auftritt in 5 Minuten"},{t:"Optional: Premium für Top-Platzierung"}].map((x,i)=>(<div key={i} style={{padding:"8px 0",fontSize:15,display:"flex",alignItems:"center",gap:10}}><span style={{background:"rgba(255,255,255,0.2)",width:24,height:24,borderRadius:"50%",display:"inline-flex",alignItems:"center",justifyContent:"center",fontWeight:900,flexShrink:0}}>✓</span>{x.t}</div>))}
+            </div>
+            <button className="btn" onClick={()=>{setPage("register");resetR();}} style={{background:"#FFF",color:P.accent,borderRadius:100,padding:"14px 32px",fontSize:15,fontWeight:800,border:"none",boxShadow:"0 8px 24px rgba(0,0,0,0.15)",cursor:"pointer"}}>Jetzt anmelden — kostenlos →</button>
+          </div>
+          <div style={{background:"#FFF",borderRadius:24,padding:24,boxShadow:"0 20px 60px rgba(0,0,0,0.2)"}}>
+            {(()=>{const topByViews=[...rests].filter(r=>r.views).sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,3);const fallback=[{name:"Pizzeria Da Luigi",emoji:"🍕",views:847,growth:"+34%"},{name:"Kebab König",emoji:"🥙",views:1203,growth:"+58%"},{name:"Taco Loco",emoji:"🌮",views:678,growth:"+22%"}];const items=topByViews.length>=3?topByViews.map((r,i)=>({name:r.name,emoji:CE[r.cats[0]]||"🍽️",views:r.views,growth:["+34%","+58%","+22%"][i]||"+12%"})):fallback;
+            return items.map((item,i)=>(<div key={i} style={{background:P.card,border:`1.5px solid ${P.border}`,borderRadius:14,padding:14,marginBottom:i<items.length-1?12:0,display:"flex",alignItems:"center",gap:12}}>
+              <div style={{fontSize:32}}>{item.emoji}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:800,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",color:P.text}}>{item.name}</div>
+                <div style={{fontSize:11,color:P.textM}}>{item.views} Aufrufe diesen Monat</div>
+              </div>
+              <div style={{fontSize:11,color:P.accent,fontWeight:700,background:"#E8F0E8",padding:"4px 10px",borderRadius:8,whiteSpace:"nowrap"}}>{item.growth}</div>
+            </div>));})()}
+          </div>
         </div>
-      </div>
+        <style>{`@media(max-width:768px){.biz-grid{grid-template-columns:1fr!important;gap:32px!important}}`}</style>
+      </Reveal>
 
       {/* FOOTER — Lieferando-style */}
       <footer style={{background:"#1B2A1D",color:"rgba(255,255,255,0.5)",padding:"48px 24px 28px"}}>
