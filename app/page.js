@@ -262,8 +262,8 @@ export default function App(){
     }else{setPlzSuggestions([]);setShowSugg(false);}
   },[plzSearch]);
 
-  const selectPlz=(plz)=>{setPlzSearch(plz);setShowSugg(false);setSearching(true);setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);};
-  const doSearch=()=>{if(plzSearch.length>=4){setShowSugg(false);setSearching(true);setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}};
+  const selectPlz=(plz)=>{trackClick("plz_search",null,plz);setPlzSearch(plz);setShowSugg(false);setSearching(true);setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);};
+  const doSearch=()=>{if(plzSearch.length>=4){trackClick("plz_search",null,plzSearch);setShowSugg(false);setSearching(true);setTimeout(()=>appRef.current?.scrollIntoView({behavior:"smooth"}),100);}};
 
   // Register state
   const[rStep,setRStep]=useState(1);
@@ -307,6 +307,19 @@ export default function App(){
     }));
     setRests(merged);
     setLoading(false);
+  };
+
+  // ===== TRACKING: Klicks in Supabase speichern =====
+  // restaurant_id: UUID des Restaurants (null bei reinen PLZ-Suchen)
+  // type: 'phone', 'whatsapp', 'pdf', 'route', 'website', 'plz_search'
+  // plz: optional, nur bei PLZ-Suchen
+  const trackClick=async(type,restaurantId=null,plz=null)=>{
+    try{
+      await supabase.from("clicks").insert({restaurant_id:restaurantId,click_type:type,plz_searched:plz});
+    }catch(e){
+      // Fehler beim Tracking soll nichts kaputt machen
+      console.warn("Tracking-Fehler (egal):",e?.message);
+    }
   };
 
   // Check auth on mount
@@ -638,10 +651,10 @@ export default function App(){
 
             {/* Action Buttons */}
             <div style={{display:"flex",gap:8,marginBottom:24,flexWrap:"wrap"}}>
-              {selRest.phone&&<a href={`tel:${selRest.phone}`} className="btn" style={{flex:1,minWidth:90,background:P.accent,color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center",gap:6}}>📞 Anrufen</a>}
-              {selRest.prem&&selRest.whatsapp&&<a href={`https://wa.me/${selRest.whatsapp.replace(/[^0-9]/g,"")}`} target="_blank" rel="noopener" className="btn" style={{flex:1,minWidth:90,background:"#25D366",color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</a>}
-              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getAddr(selRest))}`} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:90,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>📍 Route</a>
-              {selRest.prem&&selRest.website&&<a href={selRest.website.startsWith("http")?selRest.website:`https://${selRest.website}`} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:90,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>🌐 Website</a>}
+              {selRest.phone&&<a href={`tel:${selRest.phone}`} onClick={()=>trackClick("phone",selRest.id)} className="btn" style={{flex:1,minWidth:90,background:P.accent,color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center",gap:6}}>📞 Anrufen</a>}
+              {selRest.prem&&selRest.whatsapp&&<a href={`https://wa.me/${selRest.whatsapp.replace(/[^0-9]/g,"")}`} onClick={()=>trackClick("whatsapp",selRest.id)} target="_blank" rel="noopener" className="btn" style={{flex:1,minWidth:90,background:"#25D366",color:"#FFF",borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</a>}
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getAddr(selRest))}`} onClick={()=>trackClick("route",selRest.id)} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:90,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>📍 Route</a>
+              {selRest.prem&&selRest.website&&<a href={selRest.website.startsWith("http")?selRest.website:`https://${selRest.website}`} onClick={()=>trackClick("website",selRest.id)} target="_blank" rel="noopener" className="btn2" style={{flex:1,minWidth:90,background:P.card,border:`1.5px solid ${P.border}`,borderRadius:12,padding:"14px",fontSize:14,fontWeight:700,color:P.textM,textDecoration:"none",textAlign:"center"}}>🌐 Website</a>}
             </div>
 
             {/* Info Grid */}
@@ -698,9 +711,9 @@ export default function App(){
             {selRest.pdfUrl?(<div style={{background:P.card,borderRadius:16,overflow:"hidden",marginBottom:24,border:`1.5px solid ${P.border}`}}>
               <div style={{padding:"16px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${P.border}`}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:20}}>📄</span><div><div style={{fontSize:14,fontWeight:700}}>Speisekarte</div><div style={{fontSize:11,color:P.textM}}>{selRest.pdfName}</div></div></div>
-                <a href={selRest.pdfUrl} download={selRest.pdfName} className="btn" style={{background:P.accent,color:"#FFF",borderRadius:100,padding:"8px 20px",fontSize:12,fontWeight:700,textDecoration:"none"}}>↓ Download</a>
+                <a href={selRest.pdfUrl} download={selRest.pdfName} onClick={()=>trackClick("pdf",selRest.id)} className="btn" style={{background:P.accent,color:"#FFF",borderRadius:100,padding:"8px 20px",fontSize:12,fontWeight:700,textDecoration:"none"}}>↓ Download</a>
               </div>
-              <iframe src={selRest.pdfUrl} style={{width:"100%",height:500,border:"none"}} title="PDF"/>
+              <iframe src={selRest.pdfUrl} onLoad={()=>trackClick("pdf_view",selRest.id)} style={{width:"100%",height:500,border:"none"}} title="PDF"/>
             </div>):null}
 
           </div>);})()
