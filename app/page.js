@@ -11,20 +11,21 @@ const TIMES=[];for(let h=0;h<24;h++){TIMES.push(`${String(h).padStart(2,"0")}:00
 const DS=DAYS.map(()=>({closed:false,slots:[{open:"11:00",close:"22:00"}]}));
 const P={lila:"#2D6A4F",mint:"#40916C",rosa:"#D4A373",peach:"#E9C46A",text:"#1B2A1D",textM:"#6B7E6F",border:"#D5CCBB",bg:"#F5F0E8",card:"#FFFDF8",hero:"#EAE2D4",heroBg:"#F5F0E8",section1:"#E8F0E8",section2:"#FFF5EB",accent:"#2D6A4F",warm:"#D4A373",gold:"#E9C46A"};
 
-const Logo=({h=28,light=false,showTag=false})=>{const s=h/28;return(<div style={{display:"flex",alignItems:"center",gap:h*0.3}}>
-  <svg width={h*1.1} height={h} viewBox="0 0 34 30" fill="none">
-    <rect x="1" y="1" width="28" height="28" rx="7" stroke={light?"#FFF":"#2D6A4F"} strokeWidth="2.5" fill="none"/>
-    <rect x="4" y="4" width="22" height="22" rx="5" fill={light?"rgba(255,255,255,0.15)":"#2D6A4F"} opacity="0.12"/>
-    <path d="M12 22 C12 22 12 14 18 10" stroke={light?"rgba(255,255,255,0.3)":"#40916C"} strokeWidth="2" fill="none" strokeLinecap="round"/>
-    <path d="M10 20 C10 20 12 12 20 9" stroke={light?"rgba(255,255,255,0.2)":"#6BAF8D"} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-    <circle cx="18" cy="10" r="4.5" fill={light?"#FFF":"#2D6A4F"}/>
-    <circle cx="18" cy="10" r="2" fill={light?"#2D6A4F":"#FFFDF8"}/>
+const Logo=({h=28,light=false,showTag=false})=>{return(<div style={{display:"flex",alignItems:"center",gap:h*0.32}}>
+  <svg width={h*0.82} height={h} viewBox="0 0 120 148" fill="none">
+    <path d="M60 6 C 31 6, 8 28, 8 56 C 8 90, 60 142, 60 142 C 60 142, 112 90, 112 56 C 112 28, 89 6, 60 6 Z" fill={light?"#FFFDF8":"#2D6A4F"}/>
+    <path d="M45 30 L45 56" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
+    <path d="M53 30 L53 56" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
+    <path d="M61 30 L61 56" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
+    <path d="M43 56 L63 56" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
+    <path d="M53 56 L53 102" stroke={light?"#1B2A1D":"#FFFDF8"} strokeWidth="3.5" strokeLinecap="round"/>
+    <circle cx="53" cy="100" r="3" fill={light?"#1B2A1D":"#FFFDF8"}/>
   </svg>
   <div>
-    <div style={{fontSize:h*0.78,fontWeight:900,color:light?"#FFF":"#1B2A1D",letterSpacing:"-0.5px",lineHeight:1}}>
-      <span style={{color:light?"#FFF":"#6B7E6F"}}>Deli</span><span style={{color:light?"#FFF":"#1B2A1D"}}>carto</span>
+    <div style={{fontSize:h*0.9,fontWeight:600,color:light?"#FFFDF8":"#2D6A4F",letterSpacing:"-1px",lineHeight:1,fontFamily:"Georgia, 'Times New Roman', serif"}}>
+      DeliCarto
     </div>
-    {showTag&&<div style={{fontSize:h*0.32,color:light?"rgba(255,255,255,0.5)":"#6B7E6F",fontWeight:600,marginTop:1}}>Restaurants einfach digital.</div>}
+    {showTag&&<div style={{fontSize:h*0.32,color:light?"rgba(255,255,255,0.5)":"#6B7E6F",fontWeight:600,marginTop:3,fontFamily:"system-ui, sans-serif"}}>Restaurants einfach digital.</div>}
   </div>
 </div>)};
 
